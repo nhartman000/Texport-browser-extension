@@ -9,6 +9,7 @@ rm -rf dist && mkdir -p dist/firefox dist/chrome
 for t in firefox chrome; do
   cp -r src/. "dist/$t/"
   rm -f "dist/$t/icons/icon.svg"
+  cp README.md LICENSE PRIVACY.md "dist/$t/"     # for reviewers; not used at runtime
 done
 python3 - <<'PY'
 import json
