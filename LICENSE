@@ -1,0 +1,26 @@
+TExporT Markers — End User License Agreement
+
+Copyright (c) 2026 American Milestone Inc. All rights reserved.
+
+TExporT Markers ("the Software") is proprietary software owned by American Milestone Inc.
+
+1. Grant. You may install and use the Software free of charge, for personal or
+   commercial purposes, in any number of your own browsers and devices.
+
+2. Restrictions. Except as expressly permitted by this agreement or by applicable
+   law, you may not copy, modify, distribute, sell, sublicense, or create derivative
+   works of the Software, and you may not redistribute it outside the official
+   distribution channels chosen by American Milestone Inc. (addons.mozilla.org and
+   the Chrome Web Store).
+
+3. Your content. Conversations you capture, your markers, notes and exports belong
+   to you. The Software stores them only in your browser's local extension storage
+   and does not transmit them anywhere.
+
+4. MG8 formats. The MG8 file-family specifications referenced by TExporT
+   (.mg8, .gst, .g8son, .ork, .qson, .gitson) are published separately under the
+   MIT license at https://github.com/nhartman000. Files you export are yours.
+
+5. No warranty. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED. IN NO EVENT SHALL AMERICAN MILESTONE INC. BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.

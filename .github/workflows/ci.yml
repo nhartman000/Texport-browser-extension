@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests (settings, export format, manifest)
+        run: npm test
+
+      - name: Build Firefox and Chrome packages
+        run: bash build.sh
+
+      - name: Lint the Firefox package (Mozilla web-ext, same checks AMO runs)
+        run: npx --yes web-ext@8 lint --source-dir dist/firefox --warnings-as-errors=false
+        continue-on-error: true   # report only; review the output before each AMO upload
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright Chromium
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: End-to-end test in Chromium (Claude, ChatGPT, Gemini mock pages)
+        run: python tests/e2e/test_chromium.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-packages
+          path: dist/*.zip

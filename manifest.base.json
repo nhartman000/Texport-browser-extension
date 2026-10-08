@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "TExporT Markers",
+  "short_name": "TExporT",
+  "version": "1.2.0",
+  "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose.",
+  "author": "American Milestone Inc",
+  "homepage_url": "https://github.com/nhartman000/Texport-browser-extension",
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "96": "icons/icon-96.png", "128": "icons/icon-128.png" },
+  "permissions": ["contextMenus", "storage", "scripting"],
+  "host_permissions": [
+    "*://claude.ai/*",
+    "*://chatgpt.com/*",
+    "*://chat.openai.com/*",
+    "*://gemini.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://claude.ai/*",
+        "*://chatgpt.com/*",
+        "*://chat.openai.com/*",
+        "*://gemini.google.com/*"
+      ],
+      "js": ["settings.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png" },
+    "default_title": "TExporT Markers",
+    "default_popup": "popup.html"
+  },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "commands": {
+    "mark-selection": {
+      "suggested_key": { "default": "Alt+Shift+M" },
+      "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose."
+    },
+    "toggle-panel": {
+      "suggested_key": { "default": "Alt+Shift+K" },
+      "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose."
+    }
+  }
+}

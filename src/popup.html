@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --c: #f59e0b; }
+  body { font: 13px system-ui, sans-serif; width: 330px; margin: 0; padding: 12px; color: #111; background: #fff; }
+  h1 { font-size: 15px; margin: 0 0 10px; display: flex; align-items: center; }
+  h1 button { margin-left: auto; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin: 14px 0 6px; }
+  .big { font-weight: 600; font-size: 14px; }
+  .bar { height: 5px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin: 6px 0; }
+  .bar > i { display: block; height: 100%; background: var(--c); }
+  .bar.over > i { background: #ef4444; }
+  .row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #eee; }
+  .row .name { flex: 1; min-width: 0; }
+  .row .name > div:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .sub { color: #6b7280; font-size: 11px; }
+  button { font: inherit; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 5px; background: #f9fafb; cursor: pointer; }
+  button:hover { background: #f3f4f6; }
+  button.primary { background: var(--c); border-color: rgba(0,0,0,.2); }
+  button.danger { color: #b91c1c; }
+  .muted { color: #6b7280; }
+  .small { font-size: 11px; margin-top: 8px; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <h1>TExporT Markers <button id="settings" title="Settings">⚙ Settings</button></h1>
+  <div id="here"></div>
+  <h2>Collections</h2>
+  <div id="cols"></div>
+  <script src="settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

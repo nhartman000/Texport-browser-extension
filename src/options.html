@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>TExporT Markers — Settings</title>
+<style>
+  :root { --ink: #111827; --muted: #6b7280; --line: #e5e7eb; --bg: #fff; --card: #f9fafb; --acc: #d97706; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #f4f4f5; --muted: #a1a1aa; --line: #3f3f46; --bg: #18181b; --card: #27272a; } }
+  body { font: 14px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); max-width: 720px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 0 0 16px; }
+  h2 { font-size: 15px; margin: 0 0 12px; }
+  .row { display: grid; grid-template-columns: 220px 1fr; gap: 12px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: 0; }
+  .row label { font-weight: 600; }
+  .hint { grid-column: 2; color: var(--muted); font-size: 12.5px; margin-top: -4px; }
+  input[type=number] { width: 110px; }
+  input, select, textarea { font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+  textarea { width: 100%; min-height: 70px; box-sizing: border-box; }
+  input[type=checkbox] { justify-self: start; width: 18px; height: 18px; }
+  .inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .saved { color: #16a34a; font-size: 13px; min-height: 20px; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: inherit; cursor: pointer; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } .hint { grid-column: 1; } }
+</style>
+</head>
+<body>
+  <h1>TExporT Markers — Settings</h1>
+  <p class="sub">Changes save automatically and apply to open conversations right away.</p>
+
+  <section>
+    <h2>Size &amp; limits</h2>
+    <div class="row"><label for="unit">Measure markers in</label>
+      <select id="unit"><option value="tokens">≈ tokens (characters ÷ 4)</option><option value="words">words</option><option value="characters">characters</option></select></div>
+    <div class="row"><label for="limitAmount">Per-marker limit</label>
+      <div class="inline"><input id="limitAmount" type="number" min="0" step="10"> <span class="unitlbl"></span> (0 = no limit)</div></div>
+    <div class="row"><label for="limitMode">When a marker is over the limit</label>
+      <select id="limitMode"><option value="warn">Mark it, but warn and show it in red</option><option value="trim">Trim it to the limit</option><option value="block">Don't mark it</option></select></div>
+    <div class="row"><label for="convoBudget">Budget per conversation</label>
+      <div class="inline"><input id="convoBudget" type="number" min="0" step="100"> <span class="unitlbl"></span> total (0 = none)</div></div>
+    <div class="row"><label for="convoBudgetMode">When the budget is exceeded</label>
+      <select id="convoBudgetMode"><option value="warn">Warn</option><option value="block">Don't add more markers</option></select></div>
+    <div class="row"><label for="collectionBudget">Budget per collection</label>
+      <div class="inline"><input id="collectionBudget" type="number" min="0" step="500"> <span class="unitlbl"></span> total (0 = none)</div>
+      <div class="hint">Checked when you add a conversation to a collection and shown on the export page.</div></div>
+  </section>
+
+  <section>
+    <h2>Marking</h2>
+    <div class="row"><label for="defaultScope">Right-click with nothing selected marks</label>
+      <select id="defaultScope"><option value="message">The whole message</option><option value="paragraph">Just the paragraph I clicked</option></select></div>
+    <div class="row"><label for="askNote">Always ask for a note</label>
+      <input id="askNote" type="checkbox"></div>
+    <div class="row"><label>Keyboard shortcuts</label>
+      <div>Alt+Shift+M marks the selected text · Alt+Shift+K shows/hides the panel<div class="hint" style="margin:0">Change them in Firefox under Add-ons → ⚙ → Manage Extension Shortcuts, or in Chrome at chrome://extensions/shortcuts.</div></div></div>
+  </section>
+
+  <section>
+    <h2>Display</h2>
+    <div class="row"><label for="color">Highlight color</label><input id="color" type="color"></div>
+    <div class="row"><label for="showBadges">Size badge on each marker</label><input id="showBadges" type="checkbox"></div>
+    <div class="row"><label for="showPanel">Marker panel on the page</label><input id="showPanel" type="checkbox">
+      <div class="hint">Bottom-right list of markers with sizes, totals and budget bar.</div></div>
+  </section>
+
+  <section>
+    <h2>Export</h2>
+    <div class="row"><label for="registerPlacement">Marked-passages register</label>
+      <select id="registerPlacement"><option value="both">At the start and repeated at the end (recommended)</option><option value="top">At the start only</option><option value="end">At the end only</option></select>
+      <div class="hint">Models read the start and end of long documents most reliably.</div></div>
+    <div class="row"><label for="exportContent">Conversation text</label>
+      <select id="exportContent"><option value="full">Full conversation, markers tagged inline</option><option value="marked">Only messages that contain markers</option></select></div>
+    <div class="row"><label for="exportCounts">Show sizes in the register</label><input id="exportCounts" type="checkbox"></div>
+    <div class="row" style="grid-template-columns:1fr"><label for="extraInstructions">Extra instructions for the reading AI</label>
+      <textarea id="extraInstructions" placeholder="e.g. Treat M-markers as requirements for the code you write. Answer in bullet points."></textarea></div>
+  </section>
+
+  <div class="inline"><button id="reset">Reset to defaults</button><span class="saved" id="saved"></span></div>
+  <script src="settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

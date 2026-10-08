@@ -1,0 +1,20 @@
+name: A chat site changed and markers stopped working
+description: Marking or capture fails on one site (usually the site changed its page markup)
+labels: [site-adapter]
+body:
+  - type: dropdown
+    id: site
+    attributes:
+      label: Site
+      options: [claude.ai, chatgpt.com, chat.openai.com, gemini.google.com]
+    validations: { required: true }
+  - type: textarea
+    id: symptom
+    attributes:
+      label: What happens
+      placeholder: '"Couldn''t tell which message that is", or the whole page is captured as one message…'
+    validations: { required: true }
+  - type: input
+    id: since
+    attributes:
+      label: Roughly since when

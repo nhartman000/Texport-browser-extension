@@ -1,0 +1,31 @@
+name: Release
+
+# Push a tag like v1.2.0 to build both store packages and attach them to a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches manifest.base.json
+        run: |
+          v=$(python3 -c "import json;print(json.load(open('manifest.base.json'))['version'])")
+          test "v$v" = "${GITHUB_REF_NAME}" || { echo "Tag ${GITHUB_REF_NAME} != manifest version $v"; exit 1; }
+
+      - name: Build
+        run: bash build.sh
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/*.zip \
+            --title "TExporT Markers ${GITHUB_REF_NAME}" \
+            --notes "See CHANGELOG.md. Upload the -firefox zip to addons.mozilla.org and the -chrome zip to the Chrome Web Store."

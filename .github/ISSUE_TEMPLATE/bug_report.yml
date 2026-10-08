@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in TExporT Markers doesn't work as described
+labels: [bug]
+body:
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Firefox, Chrome, Edge, Brave, Opera, Other]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Browser version and extension version
+      placeholder: "Firefox 131, TExporT Markers 1.2.0"
+    validations: { required: true }
+  - type: dropdown
+    id: site
+    attributes:
+      label: Site
+      options: [claude.ai, chatgpt.com, chat.openai.com, gemini.google.com]
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Right-click a reply → Mark this point\n2. …"
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected and what happened instead
+    validations: { required: true }
+  - type: textarea
+    id: console
+    attributes:
+      label: Errors (optional)
+      description: Firefox — about:debugging → Inspect. Chrome — chrome://extensions → Service worker / Errors. Don't paste conversation content you consider private.
