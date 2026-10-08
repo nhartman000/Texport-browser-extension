@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 128+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.2.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.2.0
 </p>
 
 ---
@@ -62,7 +62,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 
 | Browser | Minimum | Package |
 |---|---|---|
-| Firefox (desktop) | 128 | `texport-markers-firefox-<ver>.zip` |
+| Firefox (desktop) | 140 | `texport-markers-firefox-<ver>.zip` |
 | Chrome, Edge, Brave, Opera | Chrome 110 / Chromium 110 | `texport-markers-chrome-<ver>.zip` |
 
 Highlights use the CSS Custom Highlight API. On a browser version without it, marked messages still get a colored left border and everything else works.

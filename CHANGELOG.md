@@ -16,6 +16,7 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - The settings page now says where to change shortcuts in both browsers.
 
 ### Fixed
+- Firefox minimum version raised to 140 (Android 142), the first versions that support `data_collection_permissions`. This clears the AMO validator warnings.
 - `cmTrim` dropped the last word when the cut landed exactly on a word boundary.
 - Store description shortened to the Chrome Web Store's 132-character limit.
 

@@ -15,10 +15,13 @@ import json
 m = json.load(open("manifest.base.json"))
 ff = dict(m)
 ff["background"] = {"scripts": ["background.js"]}
-ff["browser_specific_settings"] = {"gecko": {
-    "id": "texport-markers@americanmilestone",
-    "strict_min_version": "128.0",
-    "data_collection_permissions": {"required": ["none"]}}}
+ff["browser_specific_settings"] = {
+    # 140 / 142 are the first versions that understand data_collection_permissions
+    "gecko": {
+        "id": "texport-markers@americanmilestone",
+        "strict_min_version": "140.0",
+        "data_collection_permissions": {"required": ["none"]}},
+    "gecko_android": {"strict_min_version": "142.0"}}
 json.dump(ff, open("dist/firefox/manifest.json", "w"), indent=2)
 ch = dict(m)
 ch["background"] = {"service_worker": "background.js"}

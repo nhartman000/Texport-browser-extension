@@ -96,7 +96,7 @@ The content script answers through `sendResponse` and returns `true`, so asynchr
 | | Firefox (`dist/firefox`) | Chrome (`dist/chrome`) |
 |---|---|---|
 | Background | `"background": {"scripts": ["background.js"]}` | `"background": {"service_worker": "background.js"}` |
-| Extra keys | `browser_specific_settings.gecko`: ID `texport-markers@americanmilestone`, `strict_min_version` 128, `data_collection_permissions: none` | `minimum_chrome_version` 110 |
+| Extra keys | `browser_specific_settings.gecko`: ID `texport-markers@americanmilestone`, `strict_min_version` 140 (Android 142), `data_collection_permissions: none` | `minimum_chrome_version` 110 |
 | API namespace | `browser.*` (native) | `chrome.*`, aliased to `browser` in `settings.js` and `background.js` |
 
 Everything else, including all source files, is identical.
