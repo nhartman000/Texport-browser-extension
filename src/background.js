@@ -10,6 +10,7 @@ const PATTERNS = [
 const CTX = ["page", "selection", "link", "image"];
 
 function setupMenus() {
+  if (!menus) return;                       // Firefox for Android has no context-menu API
   menus.removeAll().then(() => {
     menus.create({ id: "cm-root", title: "TExporT Markers", contexts: CTX, documentUrlPatterns: PATTERNS });
     const items = [
@@ -45,13 +46,13 @@ async function send(tabId, msg, frameId) {
   }
 }
 
-menus.onClicked.addListener((info, tab) => {
+if (menus) menus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "cm-open") return browser.tabs.create({ url: browser.runtime.getURL("export.html") });
   if (info.menuItemId === "cm-options") return browser.runtime.openOptionsPage();
   send(tab.id, { cmd: info.menuItemId, selection: info.selectionText || "" }, info.frameId);
 });
 
-browser.commands.onCommand.addListener(async (command) => {
+if (browser.commands) browser.commands.onCommand.addListener(async (command) => {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (!tab || !PATTERNS.some((p) => new RegExp("^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$").test(tab.url || ""))) return;
   if (command === "mark-selection") send(tab.id, { cmd: "cm-mark-key" });
@@ -60,4 +61,5 @@ browser.commands.onCommand.addListener(async (command) => {
 
 browser.runtime.onMessage.addListener((msg) => {
   if (msg && msg.cmd === "open-options") browser.runtime.openOptionsPage();
+  if (msg && msg.cmd === "open-collections") browser.tabs.create({ url: browser.runtime.getURL("export.html") });
 });

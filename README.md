@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.2.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.3.0
 </p>
 
 ---
@@ -23,6 +23,7 @@ and export a handoff document the next AI can't quietly lose.
 - [Quick start](#quick-start)
 - [How it works, step by step](#how-it-works-step-by-step)
 - [The export document](#the-export-document)
+- [On phones and tablets](#on-phones-and-tablets)
 - [Settings](#settings)
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [Privacy and permissions](#privacy-and-permissions)
@@ -46,6 +47,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 
 ## Features
 - **Right-click to mark.** Mark a whole message, the paragraph you clicked, or exactly the text you selected. Add a note saying why it matters.
+- **Or select and tap ★ Mark.** Select text and a ★ Mark button appears beside it. It works with touch on phones and tablets as well as with a mouse.
 - **See what each marker captures.** The exact text is highlighted, a size badge (`#2 · 32 tok`) sits at its start, and a panel lists every marker with its words and ≈tokens.
 - **Limits and budgets.** Set a per-marker limit (warn, trim or block) and budgets per conversation and per collection. Measure in tokens, words or characters, so a handoff fits the next model's context window.
 - **Collections.** Combine any number of conversations, from any of the supported sites, into one document.
@@ -102,6 +104,7 @@ cd Texport-browser-extension
 | Select text, then right-click → **Mark this point** (or Alt+Shift+M) | Exactly the selected text |
 | Right-click with nothing selected | The whole message, or just the paragraph you clicked if **Right-click marks** is set to *paragraph* |
 | **Mark this point with a note…** | The same, and asks for a note. The note travels into the export. |
+| Select text, then tap **★ Mark** (or **+ Note**) in the bar that appears beside it | Exactly the selected text. This is the way to mark on a phone or tablet. |
 
 Every marker gets a highlight, a badge with its number and size, and a row in the marker panel (bottom-right). A marker over your limit turns red. With the limit mode set to *trim* it is cut to the limit; with *block* it isn't created.
 
@@ -159,6 +162,16 @@ The tags are plain text, so they survive PDF text extraction and copy-paste. The
 
 **Tip:** after the model answers, check that every ID from M1 to the last one appears in its answer. The TExporT desktop app automates this check for its own captures with **Verify…**.
 
+## On phones and tablets
+Mobile browsers don't let extensions add items to the long-press menu or to the copy/paste bar. On a phone you mark like this instead:
+1. Long-press to select text in a reply. Drag the handles to cover exactly what you want.
+2. Tap **★ Mark** in the small bar that appears just below your selection, or **+ Note** to add a note.
+3. Use the marker panel (bottom-right) for everything else: **Add to collection…**, **Collections** (export), **Settings**.
+
+Where it runs:
+- **Firefox for Android** (version 142+): installs from addons.mozilla.org once the listing is marked Android-compatible.
+- **Mobile Chromium browsers that support Chrome extensions:** load the Chrome package.
+
 ## Settings
 Open Settings from the popup (⚙), the marker panel, or right-click → **TExporT Markers → Settings…**. Changes apply immediately.
 
@@ -167,7 +180,7 @@ Open Settings from the popup (⚙), the marker panel, or right-click → **TExpo
 | Group | Settings |
 |---|---|
 | Size & limits | Unit (tokens, words, characters) · per-marker limit and what happens over it (warn, trim, block) · budget per conversation (warn, block) · budget per collection |
-| Marking | Right-click marks the whole message or the paragraph · always ask for a note |
+| Marking | Right-click marks the whole message or the paragraph · always ask for a note · ★ Mark button on text selection |
 | Display | Highlight color · size badges · marker panel |
 | Export | Register placement (start and end, start, end) · full conversation or only marked messages · sizes in the register · extra instructions for the reading AI |
 
@@ -195,7 +208,8 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 
 | Problem | Fix |
 |---|---|
-| No **TExporT Markers** item in the right-click menu | The menu only appears on supported sites. Reload the tab once after installing. |
+| No **TExporT Markers** item in the right-click menu | The menu only appears on supported sites. Reload the tab once after installing. On a phone there is no such menu: select text and tap **★ Mark** instead. |
+| The ★ Mark button doesn't appear | Select text inside a message, not in the box where you type. Check Settings → "Show a ★ Mark button when you select text". |
 | "Couldn't tell which message that is" | Right-click directly on the message text, not the page margin. If it happens everywhere on one site, the site probably changed its markup: [report it](https://github.com/nhartman000/Texport-browser-extension/issues/new/choose). |
 | A marker shows in the panel but isn't highlighted | Its message isn't on screen yet (long chats load lazily). Scroll to it and the highlight appears. |
 | The export is missing early messages | Sites load long chats lazily. Scroll to the top of the conversation once, then add it to the collection again. |
@@ -213,7 +227,7 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 
 **Will my markers survive the site updating the page?** Markers are stored with the start of the message text and re-found on every page change, so they survive re-renders and reloads. If you edit or regenerate a message, its markers may not be found any more.
 
-**Does it work on mobile?** Desktop Firefox and Chromium browsers only.
+**Does it work on mobile?** Yes, on Firefox for Android and on mobile Chromium browsers that support extensions. Use the ★ Mark button (see [On phones and tablets](#on-phones-and-tablets)).
 
 ## Development
 

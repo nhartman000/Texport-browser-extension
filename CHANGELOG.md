@@ -2,6 +2,15 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.3.0] — 2026-10-10
+### Added
+- **★ Mark button next to selected text.** Select any text in a conversation and a small ★ Mark / + Note bar appears beside it. It works with touch, so you can mark on phones and tablets, where browsers have no right-click menu for extensions. It also works with a mouse. You can turn it off in Settings ("Show a ★ Mark button when you select text").
+- **Collections** button in the marker panel, which opens the export page without the toolbar popup.
+
+### Fixed
+- The background script no longer stops on browsers without the context-menu or keyboard-shortcut APIs (Firefox for Android, some mobile Chromium browsers).
+- Marker panel fits narrow screens, and its buttons are always visible on touch screens (they only appeared on mouse hover).
+
 ## [1.2.0] — 2026-10-07
 ### Added
 - **Chrome support** (also Edge, Brave and Opera). One codebase builds a Firefox package and a Chrome package (`build.sh`).
@@ -31,4 +40,5 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - Right-click markers on Claude, ChatGPT and Gemini conversations.
 - Collections that combine several conversations, exported as PDF or Markdown with reader instructions, a marked-passages register and inline `[[MARK]]` tags.
 
+[1.3.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.3.0
 [1.2.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.2.0

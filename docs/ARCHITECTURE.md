@@ -41,7 +41,7 @@ TExporT Markers is a Manifest V3 WebExtension. There is no build step: the files
 | `cm-toggle-panel` | menu, Alt+Shift+K, popup | Show or hide the marker panel | `true` |
 | `cm-count` | popup | — | `{count, key, total, unit, budget}` |
 
-The content script answers through `sendResponse` and returns `true`, so asynchronous replies work in both Chrome and Firefox. The content script sends one message to the background script: `{cmd: "open-options"}`.
+The content script answers through `sendResponse` and returns `true`, so asynchronous replies work in both Chrome and Firefox. The content script sends two messages to the background script: `{cmd: "open-options"}` and `{cmd: "open-collections"}`. On browsers without the context-menu or commands API (Firefox for Android), the background script skips those features and everything else keeps working. Marking is then done with the selection bar (`.selbar` in `content.js`), which appears on `selectionchange` beside any non-empty selection inside a message.
 
 ## Storage (`storage.local`, on the device only)
 

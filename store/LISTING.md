@@ -10,7 +10,7 @@ Mark key points in Claude, ChatGPT & Gemini chats, see what each marker captures
 **Description:**
 Long AI conversations bury the decisions that matter. TExporT Markers lets you mark them as you go and carry them into your next session intact.
 
-• Right-click any message to mark it, or select just the part you need. Add a note saying why it matters.
+• Right-click any message to mark it, or select text and tap ★ Mark. This works on phones too. Add a note saying why it matters.
 • See exactly what each marker captures: highlights, size badges and a panel with word and token counts.
 • Set limits and budgets in tokens, words or characters, so your handoff fits the next model's context.
 • Group conversations into collections and export each one as a single PDF or Markdown file.

@@ -87,6 +87,28 @@ async def main() -> int:
             await page.wait_for_timeout(800)
             await page.close()
 
+        # Phone-style marking: select text, tap the "★ Mark" button that appears beside it (no menus)
+        page = await ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(f"selection-button: {e}"))
+        await page.goto("https://claude.ai/chat/e2e")
+        await page.wait_for_timeout(1200)
+        await page.evaluate("""() => { const p = document.querySelector('.font-claude-response p');
+            const r = document.createRange(); r.selectNodeContents(p.firstChild); r.setEnd(p.firstChild, 6);
+            const s = getSelection(); s.removeAllRanges(); s.addRange(r); }""")
+        await page.wait_for_timeout(600)
+        shown = await page.evaluate("""() => { const h = [...document.querySelectorAll('div')].find(d => d.shadowRoot && d.shadowRoot.querySelector('.selbar'));
+            const b = h.shadowRoot.querySelector('.selbar'); const r = b.getBoundingClientRect();
+            return {hidden: b.hidden, w: r.width, x: r.x + r.width / 4, y: r.y + r.height / 2}; }""")
+        check(not shown["hidden"] and shown["w"] > 0, "selection shows the ★ Mark button")
+        await page.mouse.click(shown["x"], shown["y"])
+        await page.wait_for_timeout(600)
+        after = await send(sw, "https://claude.ai/*", {"cmd": "cm-count"})
+        check(after["count"] == 2, "tapping ★ Mark marks the selected text")
+        stored_m = await sw.evaluate("() => chrome.storage.local.get('markers')")
+        exc = [m["excerpt"] for m in stored_m["markers"]["https://claude.ai/chat/e2e"]]
+        check("Gate 1" in exc, f"selection marker saved exactly the selected text ({exc})")
+        await page.close()
+
         stored = await sw.evaluate("() => chrome.storage.local.get('collections')")
         cols = list(stored.get("collections", {}).values())
         check(len(cols) == 1 and len(cols[0]["convos"]) == 3, "one collection holds all three conversations")

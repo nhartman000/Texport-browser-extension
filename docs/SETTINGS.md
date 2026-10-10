@@ -12,6 +12,7 @@ To open Settings, click **⚙ Settings** in the toolbar popup, choose **Settings
 | Budget per collection | `collectionBudget` | `0` (none) | Checked when a conversation is added to a collection and shown on the export page. Useful for keeping a handoff inside a model's context window. |
 | Right-click with nothing selected marks | `defaultScope` | `message` | `message`: the whole message · `paragraph`: the paragraph, list item, code block, quote, heading or table cell you clicked. |
 | Always ask for a note | `askNote` | off | Prompts for a note on every marker. |
+| Show a ★ Mark button when you select text | `selectionButton` | on | A ★ Mark / + Note bar appears beside any text you select in a message. It is how you mark on phones and tablets. |
 | Highlight color | `color` | `#f59e0b` | Highlight, left border and badge color. Over-limit markers are always red. |
 | Size badge on each marker | `showBadges` | on | Small `#n · size` tag at the start of each marker. Click it to open the panel. |
 | Marker panel on the page | `showPanel` | on | Bottom-right panel listing every marker with its size, plus totals and the budget bar. |

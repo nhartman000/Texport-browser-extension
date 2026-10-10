@@ -136,10 +136,10 @@
       .badge.over { background: #ef4444; color: #fff; }
       .panel { position: fixed; right: 16px; bottom: 16px; pointer-events: auto; color: #f4f4f5;
         background: rgba(24,24,27,.94); border: 1px solid rgba(255,255,255,.12); border-radius: 12px;
-        box-shadow: 0 8px 28px rgba(0,0,0,.35); font-size: 12px; max-width: 360px; }
+        box-shadow: 0 8px 28px rgba(0,0,0,.35); font-size: 12px; max-width: min(360px, calc(100vw - 24px)); }
       .pill { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; user-select: none; }
       .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
-      .body { width: 360px; max-height: 60vh; display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,.1); }
+      .body { width: min(360px, calc(100vw - 24px)); max-height: 60vh; display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,.1); }
       .bar { height: 5px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden; margin: 8px 12px 0; }
       .bar > i { display: block; height: 100%; background: var(--c); }
       .bar.over > i { background: #ef4444; }
@@ -157,6 +157,13 @@
       .missing { color: #fca5a5; }
       .acts { display: none; gap: 4px; margin-top: 5px; }
       .row:hover .acts { display: flex; }
+      @media (hover: none) { .acts { display: flex; } button { padding: 6px 10px; font-size: 12.5px; } .pill { padding: 10px 14px; } }
+      .selbar { position: fixed; pointer-events: auto; display: flex; gap: 2px; padding: 3px;
+        background: rgba(24,24,27,.96); border: 1px solid rgba(255,255,255,.14); border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0,0,0,.35); z-index: 1; }
+      .selbar[hidden] { display: none; }
+      .selbar button { font-size: 13.5px; font-weight: 600; padding: 7px 12px; border: 0; background: transparent; border-radius: 7px; }
+      .selbar button.primary { color: #111; background: var(--c); }
       button { font: inherit; font-size: 11px; color: #f4f4f5; background: rgba(255,255,255,.1);
         border: 1px solid rgba(255,255,255,.16); border-radius: 5px; padding: 2px 8px; cursor: pointer; }
       button:hover { background: rgba(255,255,255,.2); }
@@ -168,10 +175,12 @@
       .toast.warn { background: #7f1d1d; }
     </style>
     <div class="badges"></div>
-    <div class="panel" hidden></div>`;
+    <div class="panel" hidden></div>
+    <div class="selbar" hidden><button class="primary" data-act="mark">★ Mark</button><button data-act="note">+ Note</button></div>`;
   (document.body || document.documentElement).appendChild(host);
   const badgeLayer = root.querySelector(".badges");
   const panel = root.querySelector(".panel");
+  const selbar = root.querySelector(".selbar");
 
   let toastTimer;
   function toast(msg, warn) {
@@ -334,11 +343,13 @@
     const foot = el("div", "foot");
     const add = el("button", null, "Add to collection…");
     add.onclick = () => capture();
+    const cols = el("button", null, "Collections");
+    cols.onclick = () => B.runtime.sendMessage({ cmd: "open-collections" });
     const settings = el("button", null, "Settings");
     settings.onclick = () => B.runtime.sendMessage({ cmd: "open-options" });
     const hide = el("button", null, "Hide panel");
-    hide.onclick = () => { panelHidden = true; renderPanel(); toast("Panel hidden — right-click → TExporT Markers → Show marker panel to bring it back."); };
-    foot.append(add, settings, hide);
+    hide.onclick = () => { panelHidden = true; renderPanel(); toast("Panel hidden — bring it back from the TExporT Markers toolbar button (Marker panel), the right-click menu, or Alt+Shift+K."); };
+    foot.append(add, cols, settings, hide);
     body.appendChild(foot);
     panel.appendChild(body);
   }
@@ -365,6 +376,47 @@
     lastSelection = sel ? sel.toString() : "";
     lastAnchor = sel && sel.rangeCount ? sel.anchorNode : null;
   }, true);
+
+  // ---- "★ Mark" button next to selected text: works with touch (phones) and mouse, no menu needed
+  let selCache = null, selTimer = null;
+  const hideSelbar = () => { selbar.hidden = true; selCache = null; };
+  function updateSelbar() {
+    if (!S.selectionButton) return hideSelbar();
+    const sel = window.getSelection();
+    const text = sel && sel.rangeCount && !sel.isCollapsed ? sel.toString().trim() : "";
+    if (text.length < 2) return hideSelbar();
+    const range = sel.getRangeAt(0);
+    let node = range.commonAncestorContainer;
+    if (node.nodeType !== 1) node = node.parentElement;
+    if (!node || node.closest("[contenteditable=''], [contenteditable='true'], textarea, input")) return hideSelbar();
+    const msgs = getMessages();
+    if (indexOfNode(msgs, node) < 0 && indexOfNode(msgs, sel.anchorNode) < 0) return hideSelbar();
+    const rects = range.getClientRects();
+    const first = rects[0] || range.getBoundingClientRect(), last = rects[rects.length - 1] || first;
+    selCache = { text, node, anchor: sel.anchorNode };
+    selbar.style.setProperty("--c", S.color);
+    selbar.hidden = false;
+    const w = selbar.offsetWidth || 160, h = selbar.offsetHeight || 40;
+    // below the end of the selection (phones show their own copy/paste bar above it); flip up near the bottom
+    let top = last.bottom + 12, left = last.right - w / 2;
+    if (top + h > window.innerHeight - 8) top = first.top - h - 12;
+    selbar.style.top = Math.max(8, Math.min(top, window.innerHeight - h - 8)) + "px";
+    selbar.style.left = Math.max(8, Math.min(left, window.innerWidth - w - 8)) + "px";
+  }
+  document.addEventListener("selectionchange", () => { clearTimeout(selTimer); selTimer = setTimeout(updateSelbar, 250); });
+  window.addEventListener("scroll", () => { if (!selbar.hidden) { clearTimeout(selTimer); selTimer = setTimeout(updateSelbar, 120); } }, { passive: true, capture: true });
+  selbar.addEventListener("pointerdown", (e) => e.preventDefault());   // keep the selection while tapping
+  selbar.addEventListener("mousedown", (e) => e.preventDefault());
+  selbar.addEventListener("click", async (e) => {
+    const b = e.target.closest("button");
+    if (!b || !selCache) return;
+    const c = selCache;
+    hideSelbar();
+    lastTarget = c.node; lastAnchor = c.anchor; lastSelection = c.text;
+    await mark(b.dataset.act === "note", c.text);
+    const sel = window.getSelection();
+    if (sel) sel.removeAllRanges();
+  });
 
   // ---- Commands
   async function mark(withNote, selectionText, fromKeyboard) {
@@ -522,7 +574,7 @@
   }
 
   B.storage.onChanged.addListener(async (changes) => {
-    if (changes.settings) { S = await cmGetSettings(); applyPageStyle(); applyHighlights(); }
+    if (changes.settings) { S = await cmGetSettings(); applyPageStyle(); applyHighlights(); updateSelbar(); }
     else if (changes.markers) applyHighlights();
   });
 

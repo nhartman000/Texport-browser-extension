@@ -11,6 +11,7 @@ var CM_DEFAULTS = {
   collectionBudget: 0,       // total marked per collection (0 = none)
   defaultScope: "message",   // what a right-click marks when nothing is selected: message | paragraph
   askNote: false,            // always ask for a note
+  selectionButton: true,     // show a "★ Mark" button next to selected text (works on phones)
   color: "#f59e0b",
   showBadges: true,          // size badge at the start of each marker
   showPanel: true,           // floating marker panel on the page
