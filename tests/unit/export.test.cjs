@@ -56,3 +56,34 @@ test("export options: register at end only, marked messages only, no counts", ()
   assert.doesNotMatch(md, /— \d+ words, ≈\d+ tokens/);
   assert.match(md, /Additional instructions from the compiler:\nAnswer in French\./);
 });
+
+const { serializeCollection, parseCollectionFile } = require("../../src/export.js");
+
+test("collection files round-trip (.texport.json, shared with TExporT for Android)", () => {
+  const col = collection();
+  const back = parseCollectionFile(serializeCollection(col));
+  assert.equal(back.name, col.name);
+  assert.equal(back.convos[0].messages.length, 3);
+  assert.deepEqual(back.convos[0].markers.map((m) => m.idx), [1, 0, 9]);
+  assert.equal(buildDoc(back).total, 3);
+});
+
+test("Android snippet collections render: each snippet is a fully marked message", () => {
+  const file = JSON.stringify({ format: "texport.collection", version: 1, app: "TExporT for Android", collection: {
+    name: "Phone snippets", created: "2026-10-11T09:00:00Z",
+    convos: [{ key: "android:claude", title: "From Claude app", site: "Android", url: "", capturedAt: "2026-10-11T09:00:00Z",
+      messages: [{ role: "excerpt", text: "Gate 3 publishes only on tag v1.2.0." }],
+      markers: [{ id: "a1", idx: 0, excerpt: "", note: "release rule", scope: "selection" }] }] } });
+  const md = renderMarkdown(buildDoc(parseCollectionFile(file)));
+  assert.match(md, /\[\[MARK M1 START\]\] Note: release rule\nGate 3 publishes only on tag v1\.2\.0\.\n\[\[MARK M1 END\]\]/);
+});
+
+test("parseCollectionFile rejects other files and sanitizes fields", () => {
+  assert.throws(() => parseCollectionFile("not json"), /not valid JSON/);
+  assert.throws(() => parseCollectionFile('{"format":"other"}'), /Not a TExporT collection/);
+  assert.throws(() => parseCollectionFile('{"format":"texport.collection","version":2,"collection":{"convos":[]}}'), /update TExporT/);
+  const c = parseCollectionFile('{"format":"texport.collection","version":1,"collection":{"convos":[{"messages":[{"text":5}],"markers":[{"idx":"x"}]}]}}');
+  assert.equal(c.name, "Imported collection");
+  assert.equal(c.convos[0].messages[0].text, "");
+  assert.equal(c.convos[0].markers[0].idx, -1);
+});

@@ -13,6 +13,7 @@ To open Settings, click **⚙ Settings** in the toolbar popup, choose **Settings
 | Right-click with nothing selected marks | `defaultScope` | `message` | `message`: the whole message · `paragraph`: the paragraph, list item, code block, quote, heading or table cell you clicked. |
 | Always ask for a note | `askNote` | off | Prompts for a note on every marker. |
 | Show a ★ Mark button when you select text | `selectionButton` | on | A ★ Mark / + Note bar appears beside any text you select in a message. It is how you mark on phones and tablets. |
+| I also use TExporT for Android | `companionAndroid` | off | Shows **Send to Android (.texport.json)** on a collection and **Import from Android…** on the Collections page. |
 | Highlight color | `color` | `#f59e0b` | Highlight, left border and badge color. Over-limit markers are always red. |
 | Size badge on each marker | `showBadges` | on | Small `#n · size` tag at the start of each marker. Click it to open the panel. |
 | Marker panel on the page | `showPanel` | on | Bottom-right panel listing every marker with its size, plus totals and the budget bar. |

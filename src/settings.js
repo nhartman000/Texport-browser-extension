@@ -12,6 +12,7 @@ var CM_DEFAULTS = {
   defaultScope: "message",   // what a right-click marks when nothing is selected: message | paragraph
   askNote: false,            // always ask for a note
   selectionButton: true,     // show a "★ Mark" button next to selected text (works on phones)
+  companionAndroid: false,   // "I also use TExporT for Android": show collection-file import/export
   color: "#f59e0b",
   showBadges: true,          // size badge at the start of each marker
   showPanel: true,           // floating marker panel on the page

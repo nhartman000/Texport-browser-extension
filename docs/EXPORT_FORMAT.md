@@ -63,3 +63,11 @@ Ask the model to cite markers by ID. Every ID from M1 to MK should appear in its
 
 ## Stability
 The tag syntax `[[MARK Mn START]]` / `[[MARK Mn END]]` and the register heading format are a stable interface. Other TExporT tools parse them. Any change to either will be called out in [CHANGELOG.md](../CHANGELOG.md) as breaking.
+
+## Collection files (`.texport.json`)
+These files carry collections between TExporT Markers and TExporT for Android. A file is the stored collection wrapped in a header:
+```json
+{ "format": "texport.collection", "version": 1, "app": "TExporT Markers", "exportedAt": "<ISO time>",
+  "collection": { "name": "…", "created": "<ISO time>", "convos": [ /* same shape as storage, see ARCHITECTURE.md */ ] } }
+```
+A snippet saved on Android is a conversation with one message (`role: "excerpt"`) and one marker covering the whole message (`idx: 0, excerpt: ""`). In the export it appears as a fully marked message.

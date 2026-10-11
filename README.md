@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.3.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.4.0
 </p>
 
 ---
@@ -24,6 +24,7 @@ and export a handoff document the next AI can't quietly lose.
 - [How it works, step by step](#how-it-works-step-by-step)
 - [The export document](#the-export-document)
 - [On phones and tablets](#on-phones-and-tablets)
+- [TExporT for Android](#texport-for-android)
 - [Settings](#settings)
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [Privacy and permissions](#privacy-and-permissions)
@@ -48,6 +49,9 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 ## Features
 - **Right-click to mark.** Mark a whole message, the paragraph you clicked, or exactly the text you selected. Add a note saying why it matters.
 - **Or select and tap ★ Mark.** Select text and a ★ Mark button appears beside it. It works with touch on phones and tablets as well as with a mouse.
+- **Mark mode for phones.** Tap ✎ Mark on the TExporT chip, then tap paragraphs to mark them. No menus needed.
+- **Whole-chat capture.** Scrolls the conversation up to load every older message before saving it to a collection.
+- **Works with TExporT for Android.** Collections move between phone and browser as `.texport.json` files.
 - **See what each marker captures.** The exact text is highlighted, a size badge (`#2 · 32 tok`) sits at its start, and a panel lists every marker with its words and ≈tokens.
 - **Limits and budgets.** Set a per-marker limit (warn, trim or block) and budgets per conversation and per collection. Measure in tokens, words or characters, so a handoff fits the next model's context window.
 - **Collections.** Combine any number of conversations, from any of the supported sites, into one document.
@@ -92,7 +96,7 @@ cd Texport-browser-extension
 ## Quick start
 1. Open a conversation on Claude, ChatGPT or Gemini.
 2. Right-click an important reply → **TExporT Markers → Mark this point**.
-3. Right-click → **TExporT Markers → Add this conversation to a collection…** and name the collection.
+3. Right-click → **TExporT Markers → Add this conversation to a collection…**, or tap the TExporT chip → **Add whole chat to collection…**, and name the collection.
 4. Click the toolbar icon → **Export** next to the collection → **Save as PDF** or **Download Markdown**.
 5. Give the file to any AI and ask it to cite the markers by ID.
 
@@ -164,13 +168,22 @@ The tags are plain text, so they survive PDF text extraction and copy-paste. The
 
 ## On phones and tablets
 Mobile browsers don't let extensions add items to the long-press menu or to the copy/paste bar. On a phone you mark like this instead:
-1. Long-press to select text in a reply. Drag the handles to cover exactly what you want.
-2. Tap **★ Mark** in the small bar that appears just below your selection, or **+ Note** to add a note.
-3. Use the marker panel (bottom-right) for everything else: **Add to collection…**, **Collections** (export), **Settings**.
+- **Mark whole paragraphs:** tap **✎ Mark** on the TExporT chip (bottom-right). The chip turns into mark mode. Tap any paragraph to mark it, then tap **Done**.
+- **Mark exact words:** long-press and drag the handles over the text. Then tap **★ Mark** in the small bar that appears just below your selection, or **✎ Mark** on the chip. **+ Note** adds a note.
+- **Everything else** is in the panel (tap the chip): **Add whole chat to collection…**, **Collections** (export), and **Settings**.
+
+To mark from *any* Android app, including the Claude and ChatGPT apps, use [TExporT for Android](#texport-for-android). It adds **Mark with TExporT** to the long-press text menu.
 
 Where it runs:
 - **Firefox for Android** (version 142+): installs from addons.mozilla.org once the listing is marked Android-compatible.
 - **Mobile Chromium browsers that support Chrome extensions:** load the Chrome package.
+
+## TExporT for Android
+A companion phone app. Select text in any app, tap **Mark with TExporT** in the menu that appears, and the snippet is saved to a collection with an optional note. You can also share a whole conversation to it. Collections export to the same Markdown handoff format.
+
+To move collections between the phone and the browser, turn on **Settings → Companion apps → I also use TExporT for Android**:
+- In the browser, a collection gets **Send to Android (.texport.json)**, and the Collections page gets **Import from Android…**.
+- The Android app has the matching **I also use the TExporT browser extension** switch.
 
 ## Settings
 Open Settings from the popup (⚙), the marker panel, or right-click → **TExporT Markers → Settings…**. Changes apply immediately.
@@ -181,6 +194,7 @@ Open Settings from the popup (⚙), the marker panel, or right-click → **TExpo
 |---|---|
 | Size & limits | Unit (tokens, words, characters) · per-marker limit and what happens over it (warn, trim, block) · budget per conversation (warn, block) · budget per collection |
 | Marking | Right-click marks the whole message or the paragraph · always ask for a note · ★ Mark button on text selection |
+| Companion apps | I also use TExporT for Android (collection-file import and export) |
 | Display | Highlight color · size badges · marker panel |
 | Export | Register placement (start and end, start, end) · full conversation or only marked messages · sizes in the register · extra instructions for the reading AI |
 

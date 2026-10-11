@@ -8,6 +8,7 @@
   let panelOpen = false;
   let panelHidden = null;  // null = follow settings, true = user hid it, false = user showed it
   let items = [];          // resolved markers currently on the page
+  let markMode = false;    // tap-to-mark mode (phones and tablets)
 
   // ---- Site adapters (update selectors here if a site changes its markup)
   const SITES = [
@@ -162,6 +163,10 @@
         background: rgba(24,24,27,.96); border: 1px solid rgba(255,255,255,.14); border-radius: 10px;
         box-shadow: 0 6px 20px rgba(0,0,0,.35); z-index: 1; }
       .selbar[hidden] { display: none; }
+      .markbtn { margin-left: 6px; font-weight: 700; color: #111; background: var(--c); border: 0; border-radius: 999px; padding: 4px 11px; }
+      .markbtn.on { background: #fff; }
+      .modehint { padding: 0 12px 9px; color: #fcd34d; font-size: 12px; }
+      @media (hover: none) { .markbtn { padding: 7px 14px; font-size: 13px; } }
       .selbar button { font-size: 13.5px; font-weight: 600; padding: 7px 12px; border: 0; background: transparent; border-radius: 7px; }
       .selbar button.primary { color: #111; background: var(--c); }
       button { font: inherit; font-size: 11px; color: #f4f4f5; background: rgba(255,255,255,.1);
@@ -280,8 +285,7 @@
 
   function renderPanel() {
     panel.style.setProperty("--c", S.color);
-    panel.hidden = panelHidden === true ||
-      (panelHidden !== false && (!S.showPanel || (!items.length && !panelOpen)));
+    panel.hidden = panelHidden === true || (panelHidden !== false && !S.showPanel);
     panel.textContent = "";
     const t = totals();
     const tv = cmUnitValue(t, S.unit);
@@ -293,7 +297,13 @@
         (S.convoBudget > 0 ? ` / ${cmFmt(S.convoBudget)}` : "") + (over ? " ⚠" : "")),
       el("span", null, panelOpen ? "▾" : "▴"));
     pill.onclick = () => { panelOpen = !panelOpen; renderPanel(); };
+    const mk = el("button", "markbtn" + (markMode ? " on" : ""), markMode ? "Done" : "✎ Mark");
+    mk.title = "Mark: tap paragraphs to mark them (or marks the text you've selected)";
+    mk.addEventListener("pointerdown", (e) => e.preventDefault());   // keep any selection
+    mk.onclick = (e) => { e.stopPropagation(); onMarkButton(); };
+    pill.appendChild(mk);
     panel.appendChild(pill);
+    if (markMode) panel.appendChild(el("div", "modehint", "Tap any paragraph to mark it. Tap Done when finished."));
     if (!panelOpen) return;
 
     const body = el("div", "body");
@@ -341,8 +351,8 @@
     body.appendChild(list);
 
     const foot = el("div", "foot");
-    const add = el("button", null, "Add to collection…");
-    add.onclick = () => capture();
+    const add = el("button", null, "Add whole chat to collection…");
+    add.onclick = () => captureWhole();
     const cols = el("button", null, "Collections");
     cols.onclick = () => B.runtime.sendMessage({ cmd: "open-collections" });
     const settings = el("button", null, "Settings");
@@ -418,8 +428,67 @@
     if (sel) sel.removeAllRanges();
   });
 
+  // ---- Mark mode: tap paragraphs to mark them (no right-click or long-press menu needed)
+  function onMarkButton() {
+    const sel = window.getSelection();
+    const text = sel && !sel.isCollapsed ? sel.toString().trim() : "";
+    if (text.length >= 2) {                       // something is selected: mark exactly that
+      const r = sel.getRangeAt(0);
+      lastTarget = r.commonAncestorContainer; lastAnchor = sel.anchorNode; lastSelection = text;
+      mark(false, text).then(() => sel.removeAllRanges());
+      return;
+    }
+    markMode = !markMode;
+    panelOpen = false;
+    renderPanel();
+    if (markMode) toast("Mark mode: tap a paragraph to mark it.");
+  }
+  document.addEventListener("click", (e) => {
+    if (!markMode || e.composedPath().includes(host)) return;
+    const msgs = getMessages();
+    if (indexOfNode(msgs, e.target) < 0) return;
+    e.preventDefault(); e.stopPropagation();       // don't follow links or open menus while marking
+    lastTarget = e.target; lastAnchor = null; lastSelection = "";
+    mark(false, "", false, true);
+  }, true);
+
+  // ---- Load the whole conversation: scroll up until no older messages appear (like TExporT's auto-scroll)
+  function scrollerFor(node) {
+    for (let n = node && node.parentElement; n && n !== document.body; n = n.parentElement) {
+      const st = getComputedStyle(n);
+      if (/(auto|scroll)/.test(st.overflowY) && n.scrollHeight > n.clientHeight + 20) return n;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function loadWholeConversation() {
+    const first = getMessages()[0];
+    if (!first) return 0;
+    const sc = scrollerFor(first.el);
+    const fromBottom = sc.scrollHeight - sc.scrollTop;
+    let stable = 0, lastSig = "", rounds = 0;
+    while (stable < 3 && rounds < 80) {
+      rounds++;
+      sc.scrollTop = 0;
+      await wait(rounds < 3 ? 500 : 800);
+      const msgs = getMessages();
+      const sig = msgs.length + "|" + (msgs[0] ? textOf(msgs[0].el).slice(0, 80) : "") + "|" + sc.scrollHeight;
+      stable = sig === lastSig ? stable + 1 : 0;
+      lastSig = sig;
+      toast(`Loading the whole conversation… ${msgs.length} messages`);
+    }
+    sc.scrollTop = sc.scrollHeight - fromBottom;     // back to where you were
+    await wait(300);
+    return getMessages().length;
+  }
+  async function captureWhole() {
+    const n = await loadWholeConversation();
+    toast(`Loaded ${n} messages.`);
+    await capture();
+  }
+
   // ---- Commands
-  async function mark(withNote, selectionText, fromKeyboard) {
+  async function mark(withNote, selectionText, fromKeyboard, forceParagraph) {
     S = await cmGetSettings();
     if (fromKeyboard) {
       const sel = window.getSelection();
@@ -436,7 +505,7 @@
 
     let excerpt = (lastSelection || selectionText || "").trim();
     let scope = excerpt ? "selection" : "message";
-    if (!excerpt && S.defaultScope === "paragraph") {
+    if (!excerpt && (S.defaultScope === "paragraph" || forceParagraph)) {
       const p = paragraphOf(lastTarget, msgEl);
       if (p && textOf(p)) { excerpt = textOf(p); scope = "paragraph"; }
     }
@@ -455,6 +524,10 @@
     }
 
     const list = await getMarkers();
+    if (list.some((x) => x.msgIndex === idx && (x.excerpt || "") === (excerpt || ""))) {
+      toast("Already marked.");
+      return;
+    }
     if (S.convoBudget > 0) {
       const used = items.reduce((s, it) => s + cmUnitValue(it.m, S.unit), 0);
       const after = used + cmUnitValue(m, S.unit);
@@ -560,7 +633,7 @@
       case "cm-mark-key": return mark(false, "", true);
       case "cm-unmark": return unmark();
       case "cm-clear": return clearAll();
-      case "cm-capture": return capture();
+      case "cm-capture": return captureWhole();
       case "cm-toggle-panel":
         panelHidden = !panel.hidden;
         if (!panelHidden) panelOpen = true;

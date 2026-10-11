@@ -2,6 +2,15 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.4.0] — 2026-10-11
+### Added
+- **✎ Mark button on the TExporT chip.** The chip (bottom-right) is now always shown, even before the first marker. Tap ✎ Mark to enter mark mode, then tap any paragraph to mark it, and tap Done when finished. If text is selected, ✎ Mark marks exactly the selection. Marking no longer needs a right-click or long-press menu, which phones don't give extensions.
+- **Whole-chat capture.** "Add whole chat to collection…" first scrolls the conversation up until no older messages load, the same idea as the desktop app's auto-scroll, then captures every message and returns you to where you were.
+- **Collection files (`.texport.json`)** for TExporT for Android. Turn on Settings → Companion apps → "I also use TExporT for Android" to get "Send to Android" on a collection and "Import from Android…" on the Collections page.
+
+### Changed
+- Marking the same passage twice is ignored ("Already marked").
+
 ## [1.3.0] — 2026-10-10
 ### Added
 - **★ Mark button next to selected text.** Select any text in a conversation and a small ★ Mark / + Note bar appears beside it. It works with touch, so you can mark on phones and tablets, where browsers have no right-click menu for extensions. It also works with a mouse. You can turn it off in Settings ("Show a ★ Mark button when you select text").
@@ -40,5 +49,6 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - Right-click markers on Claude, ChatGPT and Gemini conversations.
 - Collections that combine several conversations, exported as PDF or Markdown with reader instructions, a marked-passages register and inline `[[MARK]]` tags.
 
+[1.4.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.4.0
 [1.3.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.3.0
 [1.2.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.2.0

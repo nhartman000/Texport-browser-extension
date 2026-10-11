@@ -157,7 +157,36 @@ function renderMarkdown(doc, opts = EXPORT_DEFAULTS) {
   return L.join("\n");
 }
 
-if (typeof module !== "undefined") module.exports = { buildDoc, renderMarkdown, locateExcerpt, instructionsText };
+// ---------- Collection files (.texport.json), shared with TExporT for Android ----------
+const COLLECTION_FORMAT = "texport.collection";
+
+function serializeCollection(col, app = "TExporT Markers") {
+  return JSON.stringify({ format: COLLECTION_FORMAT, version: 1, app, exportedAt: new Date().toISOString(), collection: col }, null, 2);
+}
+
+function parseCollectionFile(text) {
+  let o;
+  try { o = JSON.parse(text); } catch (_) { throw new Error("Not a TExporT collection file (not valid JSON)."); }
+  if (!o || o.format !== COLLECTION_FORMAT || !o.collection) throw new Error("Not a TExporT collection file.");
+  if (o.version > 1) throw new Error(`This file is format version ${o.version}; update TExporT Markers to open it.`);
+  const c = o.collection;
+  const str = (v, d = "") => (typeof v === "string" ? v : d);
+  if (!Array.isArray(c.convos)) throw new Error("Collection has no conversations.");
+  return {
+    name: str(c.name, "Imported collection").slice(0, 200) || "Imported collection",
+    created: str(c.created, new Date().toISOString()),
+    convos: c.convos.map((v, i) => ({
+      key: str(v.key, "import:" + i), url: str(v.url), title: str(v.title, "Conversation " + (i + 1)),
+      site: str(v.site, "Imported"), capturedAt: str(v.capturedAt, new Date().toISOString()),
+      messages: (Array.isArray(v.messages) ? v.messages : []).map((m) => ({ role: str(m && m.role, "text"), text: str(m && m.text) })),
+      markers: (Array.isArray(v.markers) ? v.markers : []).map((m, k) => ({
+        id: str(m && m.id, "m" + k), idx: Number.isInteger(m && m.idx) ? m.idx : -1,
+        excerpt: str(m && m.excerpt), note: str(m && m.note), scope: str(m && m.scope, "selection") }))
+    }))
+  };
+}
+
+if (typeof module !== "undefined") module.exports = { buildDoc, renderMarkdown, locateExcerpt, instructionsText, serializeCollection, parseCollectionFile };
 
 // ---------- Browser page ----------
 
@@ -184,10 +213,26 @@ if (typeof browser !== "undefined" && typeof document !== "undefined") {
     if (!colId || !collections[colId]) {
       document.title = "TExporT Markers — collections";
       const entries = Object.entries(collections).sort((a, b) => b[1].created.localeCompare(a[1].created));
+      const S0 = await cmGetSettings();
+      const importer = h("input", { type: "file", accept: ".json,.texport.json,application/json", style: "display:none" });
+      importer.onchange = async () => {
+        const f = importer.files[0];
+        if (!f) return;
+        try {
+          const col = parseCollectionFile(await f.text());
+          const names = new Set(Object.values(collections).map((c) => c.name));
+          if (names.has(col.name)) col.name += " (imported)";
+          collections["imp" + Date.now().toString(36)] = col;
+          await B.storage.local.set({ collections });
+          load();
+        } catch (e) { alert(e.message); }
+      };
+      if (S0.companionAndroid) app.append(h("div", { className: "toolbar" },
+        h("button", { className: "primary", textContent: "Import from Android…", onclick: () => importer.click() }), importer));
       app.append(h("h1", { textContent: "Collections" }),
         h("div", { className: "picker" }, entries.length
           ? entries.map(([id, c]) => h("a", { href: "?c=" + encodeURIComponent(id), textContent: `${c.name} — ${c.convos.length} conversation(s)` }))
-          : h("p", { textContent: "No collections yet. Right-click a conversation → TExporT Markers → Add this conversation to a collection." })));
+          : h("p", { textContent: "No collections yet. Open a conversation, tap the TExporT chip (bottom-right) → Add whole chat to collection…" })));
       return;
     }
     const col = collections[colId];
@@ -213,6 +258,8 @@ if (typeof browser !== "undefined" && typeof document !== "undefined") {
       h("button", { className: "primary", textContent: "Save as PDF", onclick: save }),
       h("button", { textContent: "Print…", onclick: () => window.print() }),
       h("button", { textContent: "Download Markdown", onclick: () => download(safeName(col.name) + ".md", renderMarkdown(doc, opts), "text/markdown") }),
+      S.companionAndroid ? h("button", { textContent: "Send to Android (.texport.json)",
+        onclick: () => download(safeName(col.name) + ".texport.json", serializeCollection(col), "application/json") }) : null,
       h("button", { textContent: "Rename", onclick: async () => {
         const n = prompt("Collection name:", col.name);
         if (n && n.trim()) { collections[colId].name = n.trim(); await B.storage.local.set({ collections }); load(); }

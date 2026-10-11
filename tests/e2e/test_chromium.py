@@ -23,6 +23,23 @@ PAGES = {
         <user-query>Lay out the gates.</user-query>
         <model-response><p>Gate 1 runs build.py.</p><p>Gate 2 checks output.json.</p></model-response></main>""",
 }
+LAZY_CHAT = """<html><head><meta charset="utf-8"></head><body style="margin:0">
+<div id="sc" style="height:250px;overflow-y:auto"><main id="m"></main></div>
+<script>
+  // mimics a chat site that loads older messages only when you scroll to the top
+  const m = document.getElementById('m'), sc = document.getElementById('sc');
+  let next = 40;
+  function add(n, atTop) { const d = document.createElement('div');
+    d.className = 'font-claude-response'; d.innerHTML = '<p>Message number ' + n + ' with enough text to take some room on the page.</p>';
+    atTop ? m.prepend(d) : m.append(d); }
+  for (let i = 31; i <= 40; i++) add(i, false);
+  let older = 30;
+  sc.addEventListener('scroll', () => { if (sc.scrollTop < 5 && older > 0) setTimeout(() => {
+      const h = sc.scrollHeight; for (let k = 0; k < 10 && older > 0; k++) add(older--, true);
+      sc.scrollTop = sc.scrollHeight - h; }, 150); });
+  sc.scrollTop = sc.scrollHeight;
+</script></body></html>"""
+
 ASSISTANT_P2 = {
     "claude.ai": ".font-claude-response p:nth-of-type(2)",
     "chatgpt.com": "[data-message-author-role=assistant] p:nth-of-type(2)",
@@ -84,7 +101,7 @@ async def main() -> int:
             check(after["count"] == 1, f"{host}: right-click → mark paragraph")
             await sw.evaluate("""async (g) => { const [t] = await chrome.tabs.query({url: g});
                 chrome.tabs.sendMessage(t.id, {cmd: "cm-capture"}); }""", glob)
-            await page.wait_for_timeout(800)
+            await page.wait_for_timeout(4500)            # loads the whole chat first (scrolls up until stable)
             await page.close()
 
         # Phone-style marking: select text, tap the "★ Mark" button that appears beside it (no menus)
@@ -108,6 +125,45 @@ async def main() -> int:
         exc = [m["excerpt"] for m in stored_m["markers"]["https://claude.ai/chat/e2e"]]
         check("Gate 1" in exc, f"selection marker saved exactly the selected text ({exc})")
         await page.close()
+
+        # Tap-to-mark on a phone-sized screen: TExporT chip → ✎ Mark → tap a paragraph (no menus, no long-press)
+        page = await ctx.new_page()
+        await page.set_viewport_size({"width": 390, "height": 844})
+        page.on("pageerror", lambda e: errors.append(f"mark-mode: {e}"))
+        await page.goto("https://chatgpt.com/c/e2e")
+        await page.wait_for_timeout(1200)
+        btn = await page.evaluate("""() => { const h=[...document.querySelectorAll('div')].find(d=>d.shadowRoot&&d.shadowRoot.querySelector('.markbtn'));
+            if (!h) return null; const r=h.shadowRoot.querySelector('.markbtn').getBoundingClientRect(); return [r.x+r.width/2, r.y+r.height/2]; }""")
+        check(btn is not None, "TExporT chip with ✎ Mark is visible even before any marker exists")
+        if btn:
+            await page.mouse.click(*btn)
+            await page.wait_for_timeout(300)
+            await page.click("[data-message-author-role=assistant] p:nth-of-type(1)")
+            await page.wait_for_timeout(600)
+            await page.click("[data-message-author-role=assistant] p:nth-of-type(1)")   # same paragraph again: no duplicate
+            await page.wait_for_timeout(600)
+            cnt = await send(sw, "https://chatgpt.com/*", {"cmd": "cm-count"})
+            check(cnt["count"] == 2, f"mark mode: tapping a paragraph marks it once ({cnt['count']} markers)")
+        await page.close()
+
+        # Whole-chat capture: older messages load only when scrolled to the top
+        await ctx.route("https://claude.ai/chat/lazy", serve(LAZY_CHAT))
+        page = await ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(f"lazy: {e}"))
+        page.on("dialog", lambda d: asyncio.ensure_future(d.accept("Lazy chat")))
+        await page.goto("https://claude.ai/chat/lazy")
+        await page.wait_for_timeout(1200)
+        await sw.evaluate("""async () => { const [t] = await chrome.tabs.query({url: "https://claude.ai/chat/lazy"});
+            chrome.tabs.sendMessage(t.id, {cmd: "cm-capture"}); }""")
+        await page.wait_for_timeout(9000)
+        lazy = await sw.evaluate("() => chrome.storage.local.get('collections')")
+        lc = [c for col in lazy["collections"].values() if col["name"] == "Lazy chat" for c in col["convos"]]
+        n = len(lc[0]["messages"]) if lc else 0
+        check(n == 40, f"whole-chat capture loaded every older message ({n} of 40)")
+        await page.close()
+        await sw.evaluate("""async () => { const r = await chrome.storage.local.get('collections');
+            for (const [k, c] of Object.entries(r.collections)) if (c.name === "Lazy chat") delete r.collections[k];
+            await chrome.storage.local.set({collections: r.collections}); }""")
 
         stored = await sw.evaluate("() => chrome.storage.local.get('collections')")
         cols = list(stored.get("collections", {}).values())
