@@ -1,6 +1,6 @@
 {
   "name": "texport-browser-extension",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "description": "TExporT Markers: mark key points in AI chats and export a handoff the next AI won't lose. Firefox + Chrome.",
   "license": "SEE LICENSE IN LICENSE",

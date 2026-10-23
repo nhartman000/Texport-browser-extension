@@ -2,6 +2,15 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.6.0] — 2026-10-22
+### Added
+- **Mark any page.** On a page that isn't a supported chat site, such as Google search results and AI answers, articles or docs, the toolbar popup now shows **✎ Mark this page**. Tapping it starts TExporT on that one tab only (`activeTab`) and opens the marker window with the page's main content. It also starts TExporT on a chat tab that was open before the extension was installed.
+
+### Changed
+- New permission: `activeTab`. It gives access only to the tab you're on, and only when you tap the button.
+- The popup is narrower, so it fits mobile browsers.
+- On pages other than the chat sites, markers are keyed by the full URL including the query, so different searches don't share markers.
+
 ## [1.5.0] — 2026-10-22
 ### Added
 - **Marker window.** Open it from the toolbar popup (**✎ Open marker window**) or the panel (**Marker window**). It shows the conversation as large paragraphs in its own tab:
@@ -60,6 +69,7 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - Right-click markers on Claude, ChatGPT and Gemini conversations.
 - Collections that combine several conversations, exported as PDF or Markdown with reader instructions, a marked-passages register and inline `[[MARK]]` tags.
 
+[1.6.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.6.0
 [1.5.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.5.0
 [1.4.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.4.0
 [1.3.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.3.0

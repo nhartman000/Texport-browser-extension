@@ -24,6 +24,7 @@ Part of TExporT by American Milestone Inc. MG8-ready.
 Mark passages in AI chat conversations and export them as a document that preserves the marked content.
 
 **Permission justifications (Chrome):**
+- activeTab: "Mark this page" — lets the user mark any page they're on (e.g. a search result or article), for that tab only, when they tap the button.
 - contextMenus: adds the right-click "Mark this point" and collection commands.
 - storage: saves markers, collections and settings locally on the user's device.
 - scripting: re-attaches the marker script to a chat tab that was already open when the extension was installed.

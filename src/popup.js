@@ -59,11 +59,25 @@ async function render() {
         el("button", { className: "danger", textContent: "Clear", onclick: async () => { await B.tabs.sendMessage(tab.id, { cmd: "cm-clear" }); window.close(); } })),
       el("div", { className: "muted small", textContent: "On the page: right-click a message → TExporT Markers, or tap ✎ Mark on the chip (bottom-right), or select text and tap ★ Mark." })
     );
-  } else if (onChatSite && allowed) {
-    here.append(el("div", { className: "muted", textContent: "TExporT isn't running in this tab yet. Reload the page, then open this again." }),
-      el("button", { className: "open", textContent: "Reload this tab", onclick: () => { B.tabs.reload(tab.id); window.close(); } }));
-  } else if (allowed) {
-    here.append(el("div", { className: "muted", textContent: "Open a Claude, ChatGPT or Gemini conversation to mark it." }));
+  } else {
+    // Any page (a Google AI answer, an article, a chat site that loaded before the extension):
+    // clicking here grants TExporT this one tab (activeTab), injects it, and opens the marker window.
+    const err = el("div", { className: "muted small" });
+    here.append(
+      el("button", { className: "primary open", textContent: "✎ Mark this page", onclick: async () => {
+        try {
+          await B.scripting.executeScript({ target: { tabId: tab.id }, files: ["settings.js", "content.js"] });
+        } catch (e) {
+          err.textContent = "This page can't be marked (browser pages, new tabs and add-on stores are off-limits to every extension).";
+          return;
+        }
+        B.tabs.create({ url: B.runtime.getURL("marker.html?tab=" + tab.id) });
+        window.close();
+      } }),
+      el("div", { className: "muted small", textContent: onChatSite
+        ? "TExporT isn't running in this tab yet. Tap above to start it here, or reload the page."
+        : "Works on any page: search results, AI answers, articles. The page opens in the marker window, where you tap paragraphs or select words to mark them." }),
+      err);
   }
 
   const { collections = {} } = await B.storage.local.get("collections");

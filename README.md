@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.5.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.6.0
 </p>
 
 ---
@@ -49,6 +49,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 ## Features
 - **Right-click to mark.** Mark a whole message, the paragraph you clicked, or exactly the text you selected. Add a note saying why it matters.
 - **Or select and tap ★ Mark.** Select text and a ★ Mark button appears beside it. It works with touch on phones and tablets as well as with a mouse.
+- **Any page, not just chat sites.** On search results, AI answers or articles, open the popup → **✎ Mark this page**.
 - **Marker window.** The conversation opens in its own tab as large paragraphs. Tap to mark, or select words and tap ★ Mark selection. This is the easiest way on a phone.
 - **Mark mode for phones.** Tap ✎ Mark on the TExporT chip, then tap paragraphs to mark them. No menus needed.
 - **Whole-chat capture.** Scrolls the conversation up to load every older message before saving it to a collection.
@@ -220,6 +221,7 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 
 | Permission | Why |
 |---|---|
+| `activeTab` | **✎ Mark this page**: access to the current tab only, only when you tap that button |
 | `contextMenus` | The right-click **TExporT Markers** menu |
 | `storage` | Saves markers, collections and settings on your device |
 | `scripting` | Attaches the marker script to a chat tab that was already open when the extension was installed |
@@ -229,6 +231,7 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 
 | Problem | Fix |
 |---|---|
+| On another site (e.g. a Google search) the popup only says "open a conversation" | Update to 1.6+. The popup then shows **✎ Mark this page**. |
 | Nothing happens on the chat page at all (no chip, popup says to open a conversation) | Open the TExporT popup. If it shows **Allow access**, tap it, because site access is off. Otherwise tap **Reload this tab**. |
 | No **TExporT Markers** item in the right-click menu | The menu only appears on supported sites. Reload the tab once after installing. On a phone there is no such menu: select text and tap **★ Mark** instead. |
 | The ★ Mark button doesn't appear | Select text inside a message, not in the box where you type. Check Settings → "Show a ★ Mark button when you select text". |

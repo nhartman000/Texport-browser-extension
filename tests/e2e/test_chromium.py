@@ -202,6 +202,27 @@ async def main() -> int:
             await chrome.storage.local.set({collections: r.collections}); }""")
         await mw.close(); await chat.close()
 
+        # Any page (no chat markup): the page's main content becomes one "page" message in the marker window
+        GENERIC = """<html><head><meta charset="utf-8"><title>Search results</title></head><body>
+            <nav>Menu Sign in</nav><div role="main"><p>To install a browser extension in Lemur, open the extension store.</p>
+            <p>Tap Add to Chrome on the extension's page.</p></div></body></html>"""
+        await ctx.route("https://claude.ai/search?q=x", serve(GENERIC))
+        gp = await ctx.new_page()
+        await gp.goto("https://claude.ai/search?q=x")
+        await gp.wait_for_timeout(1000)
+        gtab = await sw.evaluate("async () => (await chrome.tabs.query({url: 'https://claude.ai/search*'}))[0].id")
+        gw = await ctx.new_page()
+        await gw.goto(f"chrome-extension://{ext_id}/marker.html?tab={gtab}")
+        await gw.wait_for_timeout(1000)
+        texts = await gw.locator(".p").all_inner_texts()
+        check(len(texts) == 2 and "Menu" not in " ".join(texts), f"any page: marker window shows the page's main content ({texts})")
+        await gw.locator(".p", has_text="Add to Chrome").click()
+        await gw.wait_for_timeout(500)
+        mk = await sw.evaluate("() => chrome.storage.local.get('markers')")
+        gk = [k for k in mk["markers"] if "/search" in k]    # (on non-chat hosts the key also includes ?query)
+        check(bool(gk), "any page: tapping a paragraph saves a marker")
+        await gw.close(); await gp.close()
+
         stored = await sw.evaluate("() => chrome.storage.local.get('collections')")
         cols = list(stored.get("collections", {}).values())
         check(len(cols) == 1 and len(cols[0]["convos"]) == 3, "one collection holds all three conversations")

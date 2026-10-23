@@ -25,5 +25,5 @@ test("content scripts only run on the declared hosts", () => {
 });
 
 test("permissions are the minimal set", () => {
-  assert.deepEqual([...m.permissions].sort(), ["contextMenus", "scripting", "storage"]);
+  assert.deepEqual([...m.permissions].sort(), ["activeTab", "contextMenus", "scripting", "storage"]);
 });

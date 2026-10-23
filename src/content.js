@@ -22,7 +22,9 @@
   ];
   const site = SITES.find((s) => s.match.test(location.hostname)) || { name: location.hostname, sel: [] };
 
-  const convoKey = () => location.origin + location.pathname;
+  // chat sites: one conversation per path. Any other page (opened via "Mark this page"): include the query,
+  // so e.g. different Google searches don't share markers.
+  const convoKey = () => location.origin + location.pathname + (site.sel.length ? "" : location.search);
   const textOf = (el) => (el.innerText || el.textContent || "").trim();
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const unitShort = () => cmUnitLabel(S.unit, true);
@@ -42,7 +44,7 @@
       return true;
     });
     found.sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
-    if (!found.length) found = [{ el: document.querySelector("main") || document.body, role: "page" }];
+    if (!found.length) found = [{ el: document.querySelector("main, [role=main], article") || document.body, role: "page" }];
     return found;
   }
 
