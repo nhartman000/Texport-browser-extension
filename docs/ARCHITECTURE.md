@@ -26,6 +26,7 @@ TExporT Markers is a Manifest V3 WebExtension. There is no build step: the files
 | `src/content.js` | Each supported chat page | Finds the messages through the site adapters, remembers what you right-clicked, creates and removes markers, draws highlights, badges and the marker panel, and captures the conversation into a collection. |
 | `src/popup.html/js` | Toolbar popup | Marker count for the current tab and the list of collections, with Export and Delete for each. |
 | `src/options.html/js` | Settings page | Edits `settings`. Changes save immediately and every open page picks them up through `storage.onChanged`. |
+| `src/marker.html/js` | Extension page (tab) | The **marker window**. It asks the chat tab's content script for a snapshot (`cm-snapshot`: every message's role and text, optionally after loading the whole chat). It shows the snapshot as tappable paragraphs and writes markers straight to `storage.local.markers`, in the same shape the content script uses, so the page re-highlights them. Add to collection uses an in-page picker. |
 | `src/export.html/js` | Extension page | Turns a collection into the handoff document (see [EXPORT_FORMAT.md](EXPORT_FORMAT.md)). The top half of `export.js` is a pure document model with no DOM, shared with the unit tests. The bottom half renders the page and handles PDF (print), Markdown download, rename and per-conversation removal. |
 
 ## Messages (background → content script)
@@ -39,6 +40,7 @@ TExporT Markers is a Manifest V3 WebExtension. There is no build step: the files
 | `cm-clear` | menu, popup | Remove all markers in this conversation (asks to confirm) | — |
 | `cm-capture` | menu, panel, popup | Add or update this conversation in a collection | — |
 | `cm-toggle-panel` | menu, Alt+Shift+K, popup | Show or hide the marker panel | `true` |
+| `cm-snapshot` | marker window | Returns `{key, url, title, site, messages}`; with `loadAll: true` it first scrolls up to load the whole conversation | snapshot |
 | `cm-count` | popup | — | `{count, key, total, unit, budget}` |
 
 The content script answers through `sendResponse` and returns `true`, so asynchronous replies work in both Chrome and Firefox. The content script sends two messages to the background script: `{cmd: "open-options"}` and `{cmd: "open-collections"}`. On browsers without the context-menu or commands API (Firefox for Android), the background script skips those features and everything else keeps working. Marking is then done with the selection bar (`.selbar` in `content.js`), which appears on `selectionchange` beside any non-empty selection inside a message.

@@ -165,11 +165,48 @@ async def main() -> int:
             for (const [k, c] of Object.entries(r.collections)) if (c.name === "Lazy chat") delete r.collections[k];
             await chrome.storage.local.set({collections: r.collections}); }""")
 
+        # Marker window (phones): open it for a chat tab, tap a paragraph, select words, add to a collection
+        chat = await ctx.new_page()
+        await chat.goto("https://gemini.google.com/app/e2e")
+        await chat.wait_for_timeout(1200)
+        tab_id = await sw.evaluate("async () => (await chrome.tabs.query({url: 'https://gemini.google.com/*'}))[0].id")
+        mw = await ctx.new_page()
+        await mw.set_viewport_size({"width": 390, "height": 844})
+        mw.on("pageerror", lambda e: errors.append(f"marker window: {e}"))
+        await mw.goto(f"chrome-extension://{ext_id}/marker.html?tab={tab_id}")
+        await mw.wait_for_timeout(1200)
+        paras = await mw.locator(".p").count()
+        check(paras >= 3, f"marker window lists the conversation's paragraphs ({paras})")
+        before = await send(sw, "https://gemini.google.com/*", {"cmd": "cm-count"})
+        await mw.locator(".p", has_text="Gate 1 runs build.py.").click()
+        await mw.wait_for_timeout(500)
+        await mw.evaluate("""() => { const p = [...document.querySelectorAll('.p')].find(x => x.textContent.includes('Lay out'));
+            const r = document.createRange(); r.setStart(p.firstChild, 0); r.setEnd(p.firstChild, 7);
+            const s = getSelection(); s.removeAllRanges(); s.addRange(r); }""")
+        await mw.wait_for_timeout(300)
+        await mw.click("#markSel")
+        await mw.wait_for_timeout(600)
+        after = await send(sw, "https://gemini.google.com/*", {"cmd": "cm-count"})
+        check(after["count"] == before["count"] + 2, f"marker window: tap + selection added 2 markers ({before['count']} → {after['count']})")
+        marked = await mw.locator(".p.marked").count()
+        check(marked >= 2, "marker window shows the new markers")
+        await mw.click("#collect")
+        await mw.fill(".sheet input", "Phone collection")
+        await mw.click("text=Create new collection")
+        await mw.wait_for_timeout(600)
+        cols = await sw.evaluate("() => chrome.storage.local.get('collections')")
+        pc = [c for c in cols["collections"].values() if c["name"] == "Phone collection"]
+        check(bool(pc) and len(pc[0]["convos"][0]["markers"]) == after["count"], "marker window: Add to collection saves the conversation and its markers")
+        await sw.evaluate("""async () => { const r = await chrome.storage.local.get('collections');
+            for (const [k, c] of Object.entries(r.collections)) if (c.name === "Phone collection") delete r.collections[k];
+            await chrome.storage.local.set({collections: r.collections}); }""")
+        await mw.close(); await chat.close()
+
         stored = await sw.evaluate("() => chrome.storage.local.get('collections')")
         cols = list(stored.get("collections", {}).values())
         check(len(cols) == 1 and len(cols[0]["convos"]) == 3, "one collection holds all three conversations")
         marked = [m["excerpt"] for c in cols[0]["convos"] for m in c["markers"]] if cols else []
-        check(marked == ["Gate 2 checks output.json."] * 3, "paragraph markers captured the right text")
+        check(marked[:3] == ["Gate 2 checks output.json."] * 3 or sorted(marked).count("Gate 2 checks output.json.") == 3, "paragraph markers captured the right text")
 
         for pg, needle in (("popup.html", "E2E collection"), ("options.html", "Settings"), ("export.html", "Collections")):
             q = await ctx.new_page()

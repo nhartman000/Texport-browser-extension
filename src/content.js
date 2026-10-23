@@ -353,13 +353,16 @@
     const foot = el("div", "foot");
     const add = el("button", null, "Add whole chat to collection…");
     add.onclick = () => captureWhole();
+    const mw = el("button", null, "Marker window");
+    mw.title = "Open this conversation in a full-screen marker window (easiest on phones)";
+    mw.onclick = () => B.runtime.sendMessage({ cmd: "open-marker" });
     const cols = el("button", null, "Collections");
     cols.onclick = () => B.runtime.sendMessage({ cmd: "open-collections" });
     const settings = el("button", null, "Settings");
     settings.onclick = () => B.runtime.sendMessage({ cmd: "open-options" });
     const hide = el("button", null, "Hide panel");
     hide.onclick = () => { panelHidden = true; renderPanel(); toast("Panel hidden — bring it back from the TExporT Markers toolbar button (Marker panel), the right-click menu, or Alt+Shift+K."); };
-    foot.append(add, cols, settings, hide);
+    foot.append(mw, add, cols, settings, hide);
     body.appendChild(foot);
     panel.appendChild(body);
   }
@@ -481,6 +484,17 @@
     await wait(300);
     return getMessages().length;
   }
+  // The marker window (marker.html) works from this snapshot: every message's text, in order.
+  async function snapshot(loadAll) {
+    if (loadAll) await loadWholeConversation();
+    const msgs = getMessages();
+    return {
+      key: convoKey(), url: location.href, site: site.name,
+      title: document.title.replace(/\s*[-|–]\s*(Claude|ChatGPT|Gemini)\s*$/i, "").trim() || site.name + " conversation",
+      messages: msgs.map((m) => ({ role: m.role, text: textOf(m.el) }))
+    };
+  }
+
   async function captureWhole() {
     const n = await loadWholeConversation();
     toast(`Loaded ${n} messages.`);
@@ -639,6 +653,7 @@
         if (!panelHidden) panelOpen = true;
         renderPanel();
         return Promise.resolve(true);
+      case "cm-snapshot": return snapshot(msg.loadAll);
       case "cm-count": {
         const t = totals();
         return Promise.resolve({ count: items.length, key: convoKey(), total: cmUnitValue(t, S.unit), unit: S.unit, budget: S.convoBudget });

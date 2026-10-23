@@ -59,7 +59,9 @@ if (browser.commands) browser.commands.onCommand.addListener(async (command) => 
   if (command === "toggle-panel") send(tab.id, { cmd: "cm-toggle-panel" });
 });
 
-browser.runtime.onMessage.addListener((msg) => {
+browser.runtime.onMessage.addListener((msg, sender) => {
+  if (msg && msg.cmd === "open-marker" && sender.tab)
+    browser.tabs.create({ url: browser.runtime.getURL("marker.html?tab=" + sender.tab.id) });
   if (msg && msg.cmd === "open-options") browser.runtime.openOptionsPage();
   if (msg && msg.cmd === "open-collections") browser.tabs.create({ url: browser.runtime.getURL("export.html") });
 });

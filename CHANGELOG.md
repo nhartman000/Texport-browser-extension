@@ -2,6 +2,17 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.5.0] — 2026-10-22
+### Added
+- **Marker window.** Open it from the toolbar popup (**✎ Open marker window**) or the panel (**Marker window**). It shows the conversation as large paragraphs in its own tab:
+  - Tap a paragraph to mark it, and tap it again to add a note or remove the marker.
+  - Select words and tap **★ Mark selection** (or **+ Note**).
+  - **Mark whole message** works per message.
+  - **Load whole chat** and **Add to collection…** use a proper picker, not a pop-up prompt.
+
+  Markers made here also appear on the page itself. This is the dependable way to mark on Android browsers.
+- **Site-access check.** Firefox, especially on Android, keeps an extension's access to sites switched off until you allow it, and then nothing works. The popup now says so and offers **Allow access**. On a chat tab that loaded before the extension, it offers **Reload this tab**.
+
 ## [1.4.0] — 2026-10-11
 ### Added
 - **✎ Mark button on the TExporT chip.** The chip (bottom-right) is now always shown, even before the first marker. Tap ✎ Mark to enter mark mode, then tap any paragraph to mark it, and tap Done when finished. If text is selected, ✎ Mark marks exactly the selection. Marking no longer needs a right-click or long-press menu, which phones don't give extensions.
@@ -49,6 +60,7 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - Right-click markers on Claude, ChatGPT and Gemini conversations.
 - Collections that combine several conversations, exported as PDF or Markdown with reader instructions, a marked-passages register and inline `[[MARK]]` tags.
 
+[1.5.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.5.0
 [1.4.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.4.0
 [1.3.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.3.0
 [1.2.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.2.0

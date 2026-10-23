@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.4.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.5.0
 </p>
 
 ---
@@ -49,6 +49,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 ## Features
 - **Right-click to mark.** Mark a whole message, the paragraph you clicked, or exactly the text you selected. Add a note saying why it matters.
 - **Or select and tap ★ Mark.** Select text and a ★ Mark button appears beside it. It works with touch on phones and tablets as well as with a mouse.
+- **Marker window.** The conversation opens in its own tab as large paragraphs. Tap to mark, or select words and tap ★ Mark selection. This is the easiest way on a phone.
 - **Mark mode for phones.** Tap ✎ Mark on the TExporT chip, then tap paragraphs to mark them. No menus needed.
 - **Whole-chat capture.** Scrolls the conversation up to load every older message before saving it to a collection.
 - **Works with TExporT for Android.** Collections move between phone and browser as `.texport.json` files.
@@ -167,7 +168,13 @@ The tags are plain text, so they survive PDF text extraction and copy-paste. The
 **Tip:** after the model answers, check that every ID from M1 to the last one appears in its answer. The TExporT desktop app automates this check for its own captures with **Verify…**.
 
 ## On phones and tablets
-Mobile browsers don't let extensions add items to the long-press menu or to the copy/paste bar. On a phone you mark like this instead:
+Mobile browsers don't let extensions add items to the long-press menu or to the copy/paste bar. The easiest way to mark on a phone is the **marker window**:
+1. Open the conversation, then open the browser menu → **TExporT Markers** → **✎ Open marker window**.
+   - If it says **TExporT needs access to the chat sites**, tap **Allow access**. Firefox on Android keeps this off until you allow it, and nothing works without it.
+2. The conversation opens in its own tab as large paragraphs. **Tap a paragraph** to mark it, and tap it again to add a note or remove it. To mark exact words, select them and tap **★ Mark selection**.
+3. Tap **Load whole chat** if it's a long conversation, then **Add to collection…**, and later **Collections** to export.
+
+You can also mark directly on the page:
 - **Mark whole paragraphs:** tap **✎ Mark** on the TExporT chip (bottom-right). The chip turns into mark mode. Tap any paragraph to mark it, then tap **Done**.
 - **Mark exact words:** long-press and drag the handles over the text. Then tap **★ Mark** in the small bar that appears just below your selection, or **✎ Mark** on the chip. **+ Note** adds a note.
 - **Everything else** is in the panel (tap the chip): **Add whole chat to collection…**, **Collections** (export), and **Settings**.
@@ -222,6 +229,7 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 
 | Problem | Fix |
 |---|---|
+| Nothing happens on the chat page at all (no chip, popup says to open a conversation) | Open the TExporT popup. If it shows **Allow access**, tap it, because site access is off. Otherwise tap **Reload this tab**. |
 | No **TExporT Markers** item in the right-click menu | The menu only appears on supported sites. Reload the tab once after installing. On a phone there is no such menu: select text and tap **★ Mark** instead. |
 | The ★ Mark button doesn't appear | Select text inside a message, not in the box where you type. Check Settings → "Show a ★ Mark button when you select text". |
 | "Couldn't tell which message that is" | Right-click directly on the message text, not the page margin. If it happens everywhere on one site, the site probably changed its markup: [report it](https://github.com/nhartman000/Texport-browser-extension/issues/new/choose). |

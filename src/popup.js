@@ -29,18 +29,40 @@ async function render() {
   const [tab] = await B.tabs.query({ active: true, currentWindow: true });
   let info = null;
   try { info = await B.tabs.sendMessage(tab.id, { cmd: "cm-count" }); } catch (_) {}
+  const HOSTS = ["*://claude.ai/*", "*://chatgpt.com/*", "*://chat.openai.com/*", "*://gemini.google.com/*"];
+  const onChatSite = /^https?:\/\/([^/]*\.)?(claude\.ai|chatgpt\.com|chat\.openai\.com|gemini\.google\.com)\//.test(tab.url || "");
+  let allowed = true;
+  try { allowed = await B.permissions.contains({ origins: HOSTS }); } catch (_) {}
+  if (!allowed) {
+    // Firefox (especially on Android) leaves site access off until you allow it: nothing works without it.
+    here.append(el("div", { className: "warn" },
+      el("div", { className: "big", textContent: "TExporT needs access to the chat sites" }),
+      el("div", { className: "muted", textContent: "Without it, TExporT can't read or mark conversations on Claude, ChatGPT or Gemini." }),
+      el("button", { className: "primary open", textContent: "Allow access", onclick: async () => {
+        const ok = await B.permissions.request({ origins: HOSTS }).catch(() => false);
+        if (ok && onChatSite) B.tabs.reload(tab.id);
+        render();
+      } })));
+  }
   if (info) {
     here.append(
       el("div", { className: "big", textContent: `${info.count} marker${info.count === 1 ? "" : "s"} · ${cmFmt(info.total)} ${u}` +
         (info.budget ? ` of ${cmFmt(info.budget)}` : "") + (info.budget && info.total > info.budget ? " ⚠" : "") }),
       bar(info.total, info.budget),
+      el("button", { className: "primary open", textContent: "✎ Open marker window", onclick: () => {
+        B.tabs.create({ url: B.runtime.getURL("marker.html?tab=" + tab.id) }); window.close();
+      } }),
+      el("div", { className: "muted small", textContent: "The marker window lists this conversation with big tap targets: tap a paragraph to mark it, or select words and tap ★ Mark selection. Best on phones." }),
       el("div", { className: "actions" },
-        el("button", { className: "primary", textContent: "Add to collection…", onclick: () => { B.tabs.sendMessage(tab.id, { cmd: "cm-capture" }); window.close(); } }),
+        el("button", { textContent: "Add whole chat to collection…", onclick: () => { B.tabs.sendMessage(tab.id, { cmd: "cm-capture" }); window.close(); } }),
         el("button", { textContent: "Marker panel", onclick: () => { B.tabs.sendMessage(tab.id, { cmd: "cm-toggle-panel" }); window.close(); } }),
         el("button", { className: "danger", textContent: "Clear", onclick: async () => { await B.tabs.sendMessage(tab.id, { cmd: "cm-clear" }); window.close(); } })),
-      el("div", { className: "muted small", textContent: "Right-click a message → TExporT Markers → Mark this point. Select text first to mark only that part (or Alt+Shift+M)." })
+      el("div", { className: "muted small", textContent: "On the page: right-click a message → TExporT Markers, or tap ✎ Mark on the chip (bottom-right), or select text and tap ★ Mark." })
     );
-  } else {
+  } else if (onChatSite && allowed) {
+    here.append(el("div", { className: "muted", textContent: "TExporT isn't running in this tab yet. Reload the page, then open this again." }),
+      el("button", { className: "open", textContent: "Reload this tab", onclick: () => { B.tabs.reload(tab.id); window.close(); } }));
+  } else if (allowed) {
     here.append(el("div", { className: "muted", textContent: "Open a Claude, ChatGPT or Gemini conversation to mark it." }));
   }
 
