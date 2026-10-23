@@ -223,6 +223,46 @@ async def main() -> int:
         check(bool(gk), "any page: tapping a paragraph saves a marker")
         await gw.close(); await gp.close()
 
+        # Smart Marker: copy request -> (simulated) send in the chat -> AI answer appears -> markers laid,
+        # collection picked once, handoff copied + downloaded
+        SM = """<html><head><meta charset="utf-8"><title>Plan - Claude</title></head><body><main id="m">
+            <div data-testid="user-message">Lay out the gates for the release.</div>
+            <div class="font-claude-response"><p>Here's the plan.</p><p>Gate 1 runs <b>build.py --strict</b> and passes only if the exit code is 0.</p>
+            <p>Gate 2 needs exactly 3 entries in output.json.</p></div></main></body></html>"""
+        await ctx.route("https://claude.ai/chat/smart", serve(SM))
+        sp = await ctx.new_page()
+        await sp.goto("https://claude.ai/chat/smart")
+        await sp.wait_for_timeout(1000)
+        stab = await sw.evaluate("async () => (await chrome.tabs.query({url: 'https://claude.ai/chat/smart'}))[0].id")
+        sm = await ctx.new_page()
+        sm.on("pageerror", lambda e: errors.append(f"smart: {e}"))
+        await sm.goto(f"chrome-extension://{ext_id}/marker.html?smart=1&tab={stab}")
+        await sm.wait_for_timeout(1200)
+        prompt = await sm.evaluate("() => smartPrompt()")
+        check(await sm.locator("text=Waiting for the answer").count() == 1, "Smart Marker: request shown, waiting for the answer")
+        answer = ("TEXPORT-BEGIN\nQUOTE: Gate 1 runs build.py --strict and passes only if the exit code is 0. | WHY: exit condition\n"
+                  "QUOTE: Gate 2 needs exactly 3 entries in output.json | WHY: data contract\nQUOTE: never said | WHY: x\nTEXPORT-END")
+        await sp.evaluate("""([p, a]) => { const m = document.getElementById('m');
+            const u = document.createElement('div'); u.setAttribute('data-testid', 'user-message'); u.textContent = p; m.append(u);
+            const r = document.createElement('div'); r.className = 'font-claude-response'; const pre = document.createElement('pre'); pre.textContent = a; r.append(pre); m.append(r); }""", [prompt, answer])
+        await sm.wait_for_timeout(7000)
+        await sm.fill(".sheet input", "Smart collection")
+        await sm.click("text=Create new collection")
+        await sm.wait_for_timeout(1500)
+        done = await sm.locator(".sheet").inner_text()
+        check("2 markers laid" in done and "1 quote not found" in done, f"Smart Marker: laid 2 markers, reported the made-up quote ({done.splitlines()[1] if len(done.splitlines()) > 1 else done})")
+        sc = await sw.evaluate("() => chrome.storage.local.get(['collections', 'smartCollectionId'])")
+        scol = sc["collections"].get(sc.get("smartCollectionId"), {})
+        conv = scol.get("convos", [{}])[0]
+        check(scol.get("name") == "Smart collection" and len(conv.get("messages", [])) == 2 and len(conv.get("markers", [])) == 2,
+              "Smart Marker: saved to the collection without the request/answer messages")
+        print("   done sheet:", " | ".join(done.splitlines()[:6]))
+        check("Handoff copied" in done or "Copy handoff" in done, "Smart Marker: handoff copy step ran")
+        await sw.evaluate("""async () => { const r = await chrome.storage.local.get('collections');
+            for (const [k, c] of Object.entries(r.collections)) if (c.name === "Smart collection") delete r.collections[k];
+            await chrome.storage.local.set({collections: r.collections}); await chrome.storage.local.remove('smartCollectionId'); }""")
+        await sm.close(); await sp.close()
+
         stored = await sw.evaluate("() => chrome.storage.local.get('collections')")
         cols = list(stored.get("collections", {}).values())
         check(len(cols) == 1 and len(cols[0]["convos"]) == 3, "one collection holds all three conversations")

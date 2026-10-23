@@ -49,10 +49,13 @@ async function render() {
       el("div", { className: "big", textContent: `${info.count} marker${info.count === 1 ? "" : "s"} · ${cmFmt(info.total)} ${u}` +
         (info.budget ? ` of ${cmFmt(info.budget)}` : "") + (info.budget && info.total > info.budget ? " ⚠" : "") }),
       bar(info.total, info.budget),
-      el("button", { className: "primary open", textContent: "✎ Open marker window", onclick: () => {
+      el("button", { className: "primary open", textContent: "✨ Smart Marker", onclick: () => {
+        B.tabs.create({ url: B.runtime.getURL("marker.html?smart=1&tab=" + tab.id) }); window.close();
+      } }),
+      el("button", { className: "open", textContent: "✎ Open marker window", onclick: () => {
         B.tabs.create({ url: B.runtime.getURL("marker.html?tab=" + tab.id) }); window.close();
       } }),
-      el("div", { className: "muted small", textContent: "The marker window lists this conversation with big tap targets: tap a paragraph to mark it, or select words and tap ★ Mark selection. Best on phones." }),
+      el("div", { className: "muted small", textContent: "Smart Marker asks this chat's own AI for the key points, then lays the markers, copies and downloads the handoff and saves it to a collection. The marker window lets you mark by hand: tap paragraphs or select words." }),
       el("div", { className: "actions" },
         el("button", { textContent: "Add whole chat to collection…", onclick: () => { B.tabs.sendMessage(tab.id, { cmd: "cm-capture" }); window.close(); } }),
         el("button", { textContent: "Marker panel", onclick: () => { B.tabs.sendMessage(tab.id, { cmd: "cm-toggle-panel" }); window.close(); } }),

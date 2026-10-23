@@ -190,7 +190,7 @@ if (typeof module !== "undefined") module.exports = { buildDoc, renderMarkdown, 
 
 // ---------- Browser page ----------
 
-if (typeof browser !== "undefined" && typeof document !== "undefined") {
+if (typeof browser !== "undefined" && typeof document !== "undefined" && document.getElementById("app")) {
   const B = browser;
   const app = document.getElementById("app");
   const h = (tag, props = {}, ...kids) => {

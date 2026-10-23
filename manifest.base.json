@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TExporT Markers",
   "short_name": "TExporT",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose.",
   "author": "American Milestone Inc",
   "homepage_url": "https://github.com/nhartman000/Texport-browser-extension",
@@ -15,6 +15,7 @@
   },
   "permissions": [
     "activeTab",
+    "clipboardWrite",
     "contextMenus",
     "storage",
     "scripting"

@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.6.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.7.0
 </p>
 
 ---
@@ -22,6 +22,7 @@ and export a handoff document the next AI can't quietly lose.
 - [Install](#install)
 - [Quick start](#quick-start)
 - [How it works, step by step](#how-it-works-step-by-step)
+- [✨ Smart Marker](#-smart-marker)
 - [The export document](#the-export-document)
 - [On phones and tablets](#on-phones-and-tablets)
 - [TExporT for Android](#texport-for-android)
@@ -49,6 +50,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 ## Features
 - **Right-click to mark.** Mark a whole message, the paragraph you clicked, or exactly the text you selected. Add a note saying why it matters.
 - **Or select and tap ★ Mark.** Select text and a ★ Mark button appears beside it. It works with touch on phones and tablets as well as with a mouse.
+- **✨ Smart Marker.** The chat's own AI picks the key points. TExporT lays the markers, copies the handoff, downloads the `.md` and saves it to a collection, with no API key.
 - **Any page, not just chat sites.** On search results, AI answers or articles, open the popup → **✎ Mark this page**.
 - **Marker window.** The conversation opens in its own tab as large paragraphs. Tap to mark, or select words and tap ★ Mark selection. This is the easiest way on a phone.
 - **Mark mode for phones.** Tap ✎ Mark on the TExporT chip, then tap paragraphs to mark them. No menus needed.
@@ -142,6 +144,24 @@ Click the toolbar icon to see your collections, then **Export** opens the export
 
 Each conversation in the export can also be removed from the collection on this page.
 
+## ✨ Smart Marker
+Let the AI you're already talking to pick the key points. No API key and no extra service.
+1. On the conversation, open the TExporT popup and tap **✨ Smart Marker**, or tap it in the marker window.
+2. TExporT copies a short request. Paste it into the chat and send it.
+3. The AI answers with up to 12 key points as **exact quotes**, each with a reason, in a fixed block:
+   ```
+   TEXPORT-BEGIN
+   QUOTE: Gate 1 runs build.py --strict and passes only if the exit code is 0. | WHY: exit condition
+   TEXPORT-END
+   ```
+4. TExporT watches the chat. As soon as the answer finishes, it:
+   - lays a marker on each quote, with the reason as the marker's note
+   - adds the conversation to your Smart Marker collection (it asks which one the first time)
+   - **copies the handoff** to the clipboard
+   - **downloads** the `.md`
+
+Quotes the AI didn't copy word for word are reported instead of marked, so nothing invented gets in. The request and the answer are left out of the export. To pick a different collection next time, tap **Change Smart Marker's collection** on the result screen.
+
 ## The export document
 ```
 READER INSTRUCTIONS — for any AI model processing this document
@@ -221,6 +241,7 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 
 | Permission | Why |
 |---|---|
+| `clipboardWrite` | Smart Marker copies the finished handoff to your clipboard |
 | `activeTab` | **✎ Mark this page**: access to the current tab only, only when you tap that button |
 | `contextMenus` | The right-click **TExporT Markers** menu |
 | `storage` | Saves markers, collections and settings on your device |

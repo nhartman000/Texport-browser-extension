@@ -15,7 +15,7 @@ test("MV3 manifest with a semver version", () => {
 
 test("every referenced file exists", () => {
   const files = [...Object.values(m.icons), ...Object.values(m.action.default_icon), m.action.default_popup,
-                 m.options_ui.page, ...m.content_scripts.flatMap((c) => c.js), "background.js", "export.html", "marker.html", "marker.js"];
+                 m.options_ui.page, ...m.content_scripts.flatMap((c) => c.js), "background.js", "export.html", "marker.html", "marker.js", "smart.js"];
   for (const f of files) assert.ok(fs.existsSync(src(f)), f);
 });
 
@@ -25,5 +25,5 @@ test("content scripts only run on the declared hosts", () => {
 });
 
 test("permissions are the minimal set", () => {
-  assert.deepEqual([...m.permissions].sort(), ["activeTab", "contextMenus", "scripting", "storage"]);
+  assert.deepEqual([...m.permissions].sort(), ["activeTab", "clipboardWrite", "contextMenus", "scripting", "storage"]);
 });

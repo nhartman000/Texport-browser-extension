@@ -184,41 +184,172 @@ for (const [id, withNote] of [["markSel", false], ["markNote", true]]) {
 }
 
 // ---- add to collection (no prompt dialogs: a proper picker that works on phones)
-async function collect() {
-  if (!snap) return;
+// ---- collections
+function convoForCollection(markers, skip = new Set()) {
+  // leave out the Smart Marker request/answer, renumbering the remaining messages
+  const keep = [], newIdx = new Map();
+  snap.messages.forEach((m, i) => { if (!skip.has(i)) { newIdx.set(i, keep.length); keep.push(m); } });
+  return {
+    key: snap.key, url: snap.url, title: snap.title, site: snap.site, capturedAt: new Date().toISOString(),
+    messages: keep,
+    markers: markers.filter((m) => newIdx.has(m.msgIndex))
+      .map(({ id, msgIndex, excerpt, note, scope }) => ({ id, idx: newIdx.get(msgIndex), excerpt, note, scope }))
+  };
+}
+
+async function saveToCollection(colId, col, convo) {
+  const { collections = {} } = await B.storage.local.get("collections");
+  const target = collections[colId] || col;
+  const i = target.convos.findIndex((c) => c.key === convo.key);
+  if (i >= 0) target.convos[i] = convo; else target.convos.push(convo);
+  collections[colId] = target;
+  await B.storage.local.set({ collections });
+  return { name: target.name, updated: i >= 0, col: target };
+}
+
+/** Collection picker sheet; calls done(colId, col) or nothing if cancelled. */
+async function pickCollection(title, done) {
   const { collections = {} } = await B.storage.local.get("collections");
   const entries = Object.entries(collections).sort((a, b) => b[1].created.localeCompare(a[1].created));
   const sheet = el("div", { className: "sheet" });
   const close = () => sheet.remove();
   sheet.onclick = (e) => { if (e.target === sheet) close(); };
   const name = el("input", { placeholder: "New collection name", value: entries.length ? "" : "My collection" });
-  const save = async (colId, col) => {
-    close();
-    const markers = await getMarkers();
-    const convo = {
-      key: snap.key, url: snap.url, title: snap.title, site: snap.site, capturedAt: new Date().toISOString(),
-      messages: snap.messages,
-      markers: markers.map(({ id, msgIndex, excerpt, note, scope }) => ({ id, idx: msgIndex, excerpt, note, scope }))
-    };
-    const i = col.convos.findIndex((c) => c.key === convo.key);
-    if (i >= 0) col.convos[i] = convo; else col.convos.push(convo);
-    collections[colId] = col;
-    await B.storage.local.set({ collections });
-    toast(`${i >= 0 ? "Updated" : "Added"} in “${col.name}”: ${convo.messages.length} messages, ${convo.markers.length} markers.`);
-  };
   sheet.append(el("div", {},
-    el("h2", { textContent: "Add this conversation to…" }),
-    entries.map(([id, c]) => el("button", { className: "opt", textContent: `${c.name} (${c.convos.length})`, onclick: () => save(id, c) })),
+    el("h2", { textContent: title }),
+    entries.map(([id, c]) => el("button", { className: "opt", textContent: `${c.name} (${c.convos.length})`, onclick: () => { close(); done(id, c); } })),
     el("div", { style: "margin-top:10px" }, name),
     el("button", { className: "opt primary", textContent: "Create new collection", onclick: () => {
       const n = name.value.trim();
       if (!n) { name.focus(); return; }
-      save(uid(), { name: n, created: new Date().toISOString(), convos: [] });
+      close();
+      done(uid(), { name: n, created: new Date().toISOString(), convos: [] });
     } }),
     el("button", { className: "opt", textContent: "Cancel", onclick: close })));
   document.body.append(sheet);
 }
 
+async function collect() {
+  if (!snap) return;
+  pickCollection("Add this conversation to…", async (colId, col) => {
+    const r = await saveToCollection(colId, col, convoForCollection(await getMarkers(), smartMessageIndexes(snap.messages)));
+    toast(`${r.updated ? "Updated" : "Added"} in “${r.name}”.`);
+  });
+}
+
+// ---- ✨ Smart Marker (no API key): the chat's own AI picks the key points
+let smartPoll = null;
+function sheetBox(title) {
+  document.querySelectorAll(".sheet").forEach((x) => x.remove());
+  const sheet = el("div", { className: "sheet" });
+  const box = el("div", {}, el("h2", { textContent: title }));
+  sheet.append(box);
+  document.body.append(sheet);
+  return { sheet, box, close: () => { sheet.remove(); } };
+}
+
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (_) {}
+  try {                                    // fallback for browsers without async clipboard in extension pages
+    const ta = el("textarea", { value: t });
+    document.body.append(ta); ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch (_) { return false; }
+}
+
+async function smartStart() {
+  if (!snap) return;
+  const prompt = smartPrompt();
+  const copied = await copyText(prompt);
+  const { box, close } = sheetBox("✨ Smart Marker");
+  box.append(
+    el("ol", { className: "steps" },
+      el("li", { textContent: copied ? "The request is copied." : "Copy the request below." }),
+      el("li", { textContent: "Go back to the chat, paste it into the message box and send it." }),
+      el("li", { textContent: "TExporT watches the chat and, as soon as the answer is finished, lays the markers, copies the handoff, downloads the .md and adds it to your collection." })),
+    copied ? null : el("textarea", { value: prompt, style: "width:100%;height:120px;font:12px monospace" }),
+    el("button", { className: "opt primary", textContent: "Go to the chat tab", onclick: () => B.tabs.update(tabId, { active: true }) }),
+    el("button", { className: "opt", textContent: "Copy the request again", onclick: () => copyText(prompt).then((ok) => toast(ok ? "Copied." : "Copy failed: select the text and copy it.")) }),
+    el("button", { className: "opt", textContent: "Read the answer now", onclick: () => smartCheck(true) }),
+    el("button", { className: "opt", textContent: "Cancel", onclick: () => { stopPoll(); close(); } }),
+    el("div", { className: "hint", id: "smartStatus", textContent: "Waiting for the answer…" }));
+  stopPoll();
+  let lastText = null;
+  smartPoll = setInterval(async () => {
+    const s = await B.tabs.sendMessage(tabId, { cmd: "cm-snapshot" }).catch(() => null);
+    if (!s) return;
+    const ai = findAnswer(s.messages);
+    if (ai < 0) return;
+    const t = s.messages[ai].text;
+    if (t === lastText) { snap = s; smartFinish(ai); }    // unchanged for one interval: the answer has finished
+    else { lastText = t; const st = $("smartStatus"); if (st) st.textContent = "Answer arriving…"; }
+  }, 2500);
+}
+function stopPoll() { if (smartPoll) { clearInterval(smartPoll); smartPoll = null; } }
+
+async function smartCheck(manual) {
+  const s = await B.tabs.sendMessage(tabId, { cmd: "cm-snapshot" }).catch(() => null);
+  if (!s) { toast("Can't reach the chat tab."); return; }
+  const ai = findAnswer(s.messages);
+  if (ai < 0) { if (manual) toast("No finished answer with TEXPORT-BEGIN … TEXPORT-END yet."); return; }
+  snap = s;
+  smartFinish(ai);
+}
+
+async function smartFinish(ai) {
+  stopPoll();
+  const points = parseAnswer(snap.messages[ai].text);
+  const skip = smartMessageIndexes(snap.messages);
+  const list = await getMarkers();
+  let laid = 0, missing = 0, dup = 0;
+  for (const p of points) {
+    const hit = findQuote(snap.messages, p.quote, skip);
+    if (!hit) { missing++; continue; }
+    const m = snap.messages[hit.mi];
+    const excerpt = m.text.slice(hit.start, hit.end);
+    if (list.some((x) => x.msgIndex === hit.mi && x.excerpt === excerpt)) { dup++; continue; }
+    list.push({ id: uid(), msgIndex: hit.mi, role: m.role, prefix: m.text.slice(0, 120), excerpt, scope: "smart", note: p.why, created: new Date().toISOString() });
+    laid++;
+  }
+  await setMarkers(list);
+  await render();
+
+  // Then: add to a collection (asked once, remembered), copy the handoff, download the .md
+  const { smartCollectionId } = await B.storage.local.get("smartCollectionId");
+  const { collections = {} } = await B.storage.local.get("collections");
+  const go = async (colId, col) => {
+    await B.storage.local.set({ smartCollectionId: colId });
+    const r = await saveToCollection(colId, col, convoForCollection(list, skip));
+    const opts = { placement: S.registerPlacement, content: S.exportContent, counts: S.exportCounts, extra: S.extraInstructions };
+    const md = renderMarkdown(buildDoc(JSON.parse(JSON.stringify(r.col))), opts);
+    const fname = (r.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_") || "collection") + ".md";
+    try { const me = await B.tabs.getCurrent(); if (me) await B.tabs.update(me.id, { active: true }); } catch (_) {}
+    const copied = await copyText(md);
+    let downloaded = true;
+    try {
+      const a = el("a", { href: URL.createObjectURL(new Blob([md], { type: "text/markdown" })), download: fname });
+      document.body.append(a); a.click(); a.remove();
+    } catch (_) { downloaded = false; }
+    const { box } = sheetBox("✨ Smart Marker done");
+    const line = (ok, t) => el("div", { className: ok ? "ok" : "bad", textContent: (ok ? "✓ " : "✗ ") + t });
+    box.append(
+      line(laid > 0, `${laid} marker${laid === 1 ? "" : "s"} laid` + (dup ? ` (${dup} already marked)` : "") +
+        (missing ? ` · ${missing} quote${missing === 1 ? "" : "s"} not found word-for-word in the chat` : "")),
+      line(true, `Added to “${r.name}”`),
+      line(copied, copied ? "Handoff copied to the clipboard" : "Couldn't copy automatically. Tap Copy handoff."),
+      line(downloaded, downloaded ? `Downloaded ${fname}` : "Download blocked by the browser"),
+      el("button", { className: "opt primary", textContent: "Copy handoff", onclick: () => copyText(md).then((ok) => toast(ok ? "Copied." : "Copy failed.")) }),
+      el("button", { className: "opt", textContent: "Open the collection", onclick: () => B.tabs.create({ url: B.runtime.getURL("export.html?c=" + encodeURIComponent(colId)) }) }),
+      el("button", { className: "opt", textContent: "Change Smart Marker's collection", onclick: async () => { await B.storage.local.remove("smartCollectionId"); toast("Next run will ask again."); } }),
+      el("button", { className: "opt", textContent: "Close", onclick: () => document.querySelectorAll(".sheet").forEach((x) => x.remove()) }));
+  };
+  if (smartCollectionId && collections[smartCollectionId]) go(smartCollectionId, collections[smartCollectionId]);
+  else pickCollection(`✨ ${laid} markers laid. Save to which collection? (asked once)`, go);
+}
+
+$("smart").onclick = smartStart;
 $("loadAll").onclick = () => load(true);
 $("collect").onclick = collect;
 $("cols").onclick = () => B.tabs.create({ url: B.runtime.getURL("export.html") });
@@ -226,4 +357,8 @@ B.storage.onChanged.addListener(async (ch) => {
   if (ch.settings) { S = await cmGetSettings(); document.documentElement.style.setProperty("--c", S.color); }
   if (snap && (ch.markers || ch.settings)) render();
 });
-cmGetSettings().then((s) => { S = s; document.documentElement.style.setProperty("--c", S.color); load(false); });
+cmGetSettings().then(async (s) => {
+  S = s; document.documentElement.style.setProperty("--c", S.color);
+  await load(false);
+  if (new URLSearchParams(location.search).get("smart") === "1" && snap) smartStart();
+});

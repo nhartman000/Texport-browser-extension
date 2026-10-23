@@ -37,6 +37,9 @@
   .sheet h2 { margin: 0 0 10px; font-size: 17px; }
   .sheet .opt { display: block; width: 100%; text-align: left; margin: 6px 0; }
   .sheet input { width: 100%; font: inherit; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .steps { margin: 6px 0 12px; padding-left: 20px; color: var(--ink); }
+  .steps li { margin: 6px 0; }
+  .ok { color: #86efac; } .bad { color: #fca5a5; }
   .empty { color: var(--mute); padding: 30px 10px; text-align: center; }
 </style>
 </head>
@@ -45,8 +48,9 @@
     <h1 id="title">TExporT marker window</h1>
     <div class="sub" id="sub">Connecting to the conversation tab…</div>
     <div class="tools">
+      <button id="smart" class="primary">✨ Smart Marker</button>
       <button id="loadAll">Load whole chat</button>
-      <button id="collect" class="primary">Add to collection…</button>
+      <button id="collect">Add to collection…</button>
       <button id="cols">Collections</button>
     </div>
   </header>
@@ -58,6 +62,8 @@
     <button id="markSel" class="primary" disabled>★ Mark selection</button>
   </div>
   <script src="settings.js"></script>
+  <script src="export.js"></script>
+  <script src="smart.js"></script>
   <script src="marker.js"></script>
 </body>
 </html>
