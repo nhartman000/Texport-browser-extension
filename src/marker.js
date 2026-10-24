@@ -42,10 +42,11 @@ async function load(loadAll) {
   } catch (e) {
     snap = null;
   }
-  if (!snap) {
+  if (!snap || snap.error) {
     $("list").replaceChildren(el("div", { className: "empty",
-      textContent: "Can't reach the conversation tab. Make sure it's still open on claude.ai, chatgpt.com or gemini.google.com, reload it, and open the marker window again from the TExporT button." }));
-    $("sub").textContent = "Not connected";
+      textContent: snap?.error || "Can't reach the conversation tab. Make sure it's still open on claude.ai, chatgpt.com or gemini.google.com, reload it, and open the marker window again from the TExporT button." }));
+    $("sub").textContent = snap?.error ? "Capture unavailable" : "Not connected";
+    snap = null;
     return;
   }
   document.title = "Mark: " + snap.title;

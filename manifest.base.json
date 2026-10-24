@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TExporT Markers",
   "short_name": "TExporT",
-  "version": "1.7.0",
+  "version": "1.7.2",
   "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose.",
   "author": "American Milestone Inc",
   "homepage_url": "https://github.com/nhartman000/Texport-browser-extension",
@@ -59,13 +59,25 @@
       "suggested_key": {
         "default": "Alt+Shift+M"
       },
-      "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose."
+      "description": "Mark selected conversation text"
     },
     "toggle-panel": {
       "suggested_key": {
         "default": "Alt+Shift+K"
       },
-      "description": "Mark key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose."
+      "description": "Show or hide the marker panel"
+    },
+    "toggle-mark-mode": {
+      "suggested_key": {
+        "default": "Alt+Shift+H"
+      },
+      "description": "Toggle Selection / Click-to-mark mode"
+    },
+    "delete-marker": {
+      "suggested_key": {
+        "default": "Alt+Shift+U"
+      },
+      "description": "Delete one chosen or uniquely selected marker"
     }
   }
 }

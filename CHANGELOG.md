@@ -2,6 +2,18 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.7.2] — 2026-10-24
+### Added
+- Native shortcuts for Selection / Click-to-mark mode (`Alt+Shift+H`) and safe single-marker deletion (`Alt+Shift+U`). Existing mark-selection and panel shortcuts remain available.
+- Options shows actual browser shortcut assignments and provides access to the browser shortcut editor; unassigned commands are explicitly reported.
+- Always-visible marker Delete buttons, a confirmed Clear conversation markers action, and a setting to hide marker highlights without deleting data.
+- Offline browser regressions for capture, selection, deletion, editable-field safeguards, and Options.
+
+### Fixed
+- Dragging to select text in Click-to-mark mode no longer creates an accidental paragraph marker. Native selection, copy, controls and editing retain their behavior.
+- ChatGPT capture supports explicit turn-role attributes/headings and mixed markup. Recognized conversations with missing message boundaries are refused instead of silently saved as a single PAGE block.
+- Deleting one marker preserves other marker IDs/notes, source text and saved collection snapshots. Ambiguous or stale selection targets are refused.
+
 ## [1.7.0] — 2026-10-22
 ### Added
 - **✨ Smart Marker** (no API key). It's in the popup and the marker window.

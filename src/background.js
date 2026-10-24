@@ -55,8 +55,9 @@ if (menus) menus.onClicked.addListener((info, tab) => {
 if (browser.commands) browser.commands.onCommand.addListener(async (command) => {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (!tab || !PATTERNS.some((p) => new RegExp("^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$").test(tab.url || ""))) return;
-  if (command === "mark-selection") send(tab.id, { cmd: "cm-mark-key" });
-  if (command === "toggle-panel") send(tab.id, { cmd: "cm-toggle-panel" });
+  const commands = { "mark-selection": "cm-mark-key", "toggle-panel": "cm-toggle-panel",
+    "toggle-mark-mode": "cm-toggle-mark-mode", "delete-marker": "cm-delete-marker" };
+  if (commands[command]) return send(tab.id, { cmd: commands[command] });
 });
 
 browser.runtime.onMessage.addListener((msg, sender) => {

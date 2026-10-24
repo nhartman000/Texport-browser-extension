@@ -55,7 +55,12 @@
     <div class="row"><label for="selectionButton">Show a ★ Mark button when you select text<div class="hint" style="margin:0">The way to mark on phones and tablets, where browsers have no right-click menu for extensions.</div></label>
       <input id="selectionButton" type="checkbox"></div>
     <div class="row"><label>Keyboard shortcuts</label>
-      <div>Alt+Shift+M marks the selected text · Alt+Shift+K shows/hides the panel<div class="hint" style="margin:0">Change them in Firefox under Add-ons → ⚙ → Manage Extension Shortcuts, or in Chrome at chrome://extensions/shortcuts.</div></div></div>
+      <div><ul id="shortcuts" aria-live="polite"><li>Loading actual browser assignments…</li></ul>
+        <button id="editShortcuts" type="button">Open browser shortcut editor</button>
+        <p id="shortcutHelp">Chrome / Chromium: chrome://extensions/shortcuts. Firefox: Add-ons and themes → Extensions → ⚙ → Manage Extension Shortcuts. Browser/OS conflicts can leave commands unassigned.</p>
+      </div></div>
+    <p><strong>Selection mode is the default.</strong> Drag over conversation text (or enable browser caret browsing with F7, then use Shift+Arrow / Ctrl+Shift+Arrow). Click ★ Mark or use your assigned mark-selection shortcut. Use Click-to-mark mode only for paragraph clicks; Done or Escape outside editable fields returns to Selection mode. Native select/copy and editing keys are not remapped.</p>
+    <p>To delete one marker, choose its row, Show or badge, or place a selection/caret inside exactly one marker; use the assigned delete-marker shortcut. A new ambiguous selection or editable/composer focus refuses deletion, never falls back to an earlier choice. Delete buttons remain visible. Clear conversation markers is separate and asks for confirmation. Saved collection snapshots do not change unless you explicitly recapture.</p>
   </section>
 
   <section>
@@ -64,6 +69,8 @@
       <input id="companionAndroid" type="checkbox"></div>
 
     <h2>Display</h2>
+    <div class="row"><label for="showHighlights">Highlight marked text and message edges</label><input id="showHighlights" type="checkbox">
+      <div class="hint">Hide visual highlighting without deleting markers or notes. Badges are controlled separately.</div></div>
     <div class="row"><label for="color">Highlight color</label><input id="color" type="color"></div>
     <div class="row"><label for="showBadges">Size badge on each marker</label><input id="showBadges" type="checkbox"></div>
     <div class="row"><label for="showPanel">Marker panel on the page</label><input id="showPanel" type="checkbox">

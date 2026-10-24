@@ -53,7 +53,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 - **✨ Smart Marker.** The chat's own AI picks the key points. TExporT lays the markers, copies the handoff, downloads the `.md` and saves it to a collection, with no API key.
 - **Any page, not just chat sites.** On search results, AI answers or articles, open the popup → **✎ Mark this page**.
 - **Marker window.** The conversation opens in its own tab as large paragraphs. Tap to mark, or select words and tap ★ Mark selection. This is the easiest way on a phone.
-- **Mark mode for phones.** Tap ✎ Mark on the TExporT chip, then tap paragraphs to mark them. No menus needed.
+- **Explicit marking modes.** Selection mode is the default. Choose **Click to mark** on the TExporT chip for paragraph clicks; **Done** returns to Selection mode. Drag selection still works.
 - **Whole-chat capture.** Scrolls the conversation up to load every older message before saving it to a collection.
 - **Works with TExporT for Android.** Collections move between phone and browser as `.texport.json` files.
 - **See what each marker captures.** The exact text is highlighted, a size badge (`#2 · 32 tok`) sits at its start, and a panel lists every marker with its words and ≈tokens.
@@ -196,8 +196,8 @@ Mobile browsers don't let extensions add items to the long-press menu or to the 
 3. Tap **Load whole chat** if it's a long conversation, then **Add to collection…**, and later **Collections** to export.
 
 You can also mark directly on the page:
-- **Mark whole paragraphs:** tap **✎ Mark** on the TExporT chip (bottom-right). The chip turns into mark mode. Tap any paragraph to mark it, then tap **Done**.
-- **Mark exact words:** long-press and drag the handles over the text. Then tap **★ Mark** in the small bar that appears just below your selection, or **✎ Mark** on the chip. **+ Note** adds a note.
+- **Mark whole paragraphs:** tap **Selection mode · Click to mark** on the TExporT chip (bottom-right). It indicates **Click-to-mark mode**. Tap a paragraph to mark it, then tap **Done**.
+- **Mark exact words:** long-press and drag the handles over the text. Then tap **★ Mark** in the small bar that appears just below your selection. **+ Note** adds a note.
 - **Everything else** is in the panel (tap the chip): **Add whole chat to collection…**, **Collections** (export), and **Settings**.
 
 To mark from *any* Android app, including the Claude and ChatGPT apps, use [TExporT for Android](#texport-for-android). It adds **Mark with TExporT** to the long-press text menu.
@@ -233,8 +233,14 @@ Every setting, its storage key and its default are listed in [docs/SETTINGS.md](
 |---|---|
 | Alt+Shift+M | Mark the selected text |
 | Alt+Shift+K | Show or hide the marker panel |
+| Alt+Shift+H | Toggle Selection / Click-to-mark mode |
+| Alt+Shift+U | Delete one chosen or uniquely selected marker |
 
-You can change them in Firefox under Add-ons → ⚙ → **Manage Extension Shortcuts**, or in Chrome at `chrome://extensions/shortcuts`.
+These are **suggestions**, not guaranteed active assignments. Settings lists actual browser assignments and warns **Unassigned** when needed; its editor button opens `chrome://extensions/shortcuts` on Chromium or displays Firefox's **Add-ons and themes → Extensions → ⚙ → Manage Extension Shortcuts** instructions.
+
+Stay in **Selection mode**: drag to select a passage, then **★ Mark** or your assigned marking shortcut. Keyboard users can enable browser caret browsing with **F7**, use **Shift+Arrow** or **Ctrl+Shift+Arrow** to select text, then mark. Native select/copy/editing keys are untouched. **Done** or **Escape** outside editable fields exits Click-to-mark mode; composers/inputs retain native editing behavior.
+
+To delete one marker, choose its row/**Show**/badge, or put a selection/caret inside exactly one marker. Ambiguous, unmatched or stale selections and editable focus refuse deletion, never fall back to an earlier target. Every row has a visible **Delete** button. **Clear conversation markers** is a separate confirmed action; cancel changes nothing. Disable **Highlight marked text and message edges** to hide coloring without deleting marks or notes. Deleting live markers does not change saved collection snapshots unless you explicitly recapture. See [Settings](docs/SETTINGS.md#keyboard-shortcuts-and-selection) for scope and browser references.
 
 ## Privacy and permissions
 TExporT Markers collects nothing. Conversation text, markers, notes, collections and settings are stored only in your browser's local extension storage. Uninstalling the extension deletes them. Full policy: [PRIVACY.md](PRIVACY.md).
@@ -285,11 +291,13 @@ TExporT Markers collects nothing. Conversation text, markers, notes, collections
 ```bash
 npm test             # unit tests: measuring, trimming, export document model, manifest checks
 npm run build        # → dist/firefox/, dist/chrome/, dist/texport-markers-{firefox,chrome}-<ver>.zip
-npm run test:e2e     # build, load dist/chrome into Chromium, mark + collect + export on mock
-                     #   Claude, ChatGPT and Gemini pages (needs: pip install playwright)
+npm run test:e2e     # build, then all three offline Chromium suites: core, ChatGPT capture,
+                     #   selection/shortcut UX + stale/duplicate-source deletion regressions
 npm run screenshots  # regenerate store/screenshot-*.png
 npm run icons        # regenerate src/icons/*.png from the icon design
 ```
+
+**Browser test setup:** install `playwright` into the Python environment used by `python3`, then run `python3 -m playwright install chromium`. Tests use fresh browser profiles and synthetic, locally fulfilled chats; no provider login or model calls. `E2E_CHROMIUM` optionally selects a compatible Chromium executable; `TEXPORT_TEST_EXTENSION` selects an already-built unpacked package for individual scripts. Run build-dependent tests in a disposable source copy if you need to preserve `dist/`: both the build and build-dependent unit tests regenerate it. `npm run test:e2e` executes `test_chromium.py`, `test_chatgpt_capture.py`, and `test_selection_ux.py` in sequence and stops on failure.
 
 **Editing loop:**
 1. Edit `src/`.

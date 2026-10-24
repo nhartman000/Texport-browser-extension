@@ -14,6 +14,7 @@ var CM_DEFAULTS = {
   selectionButton: true,     // show a "★ Mark" button next to selected text (works on phones)
   companionAndroid: false,   // "I also use TExporT for Android": show collection-file import/export
   color: "#f59e0b",
+  showHighlights: true,      // hide visual page highlighting without deleting markers / notes
   showBadges: true,          // size badge at the start of each marker
   showPanel: true,           // floating marker panel on the page
   registerPlacement: "both", // top | both | end

@@ -8,6 +8,7 @@
   let panelOpen = false;
   let panelHidden = null;  // null = follow settings, true = user hid it, false = user showed it
   let items = [];          // resolved markers currently on the page
+  let selectedMarkerId = null; // explicitly chosen by row / Show / badge, never hover
   let markMode = false;    // tap-to-mark mode (phones and tablets)
 
   // ---- Site adapters (update selectors here if a site changes its markup)
@@ -35,6 +36,22 @@
       document.querySelectorAll(sel).forEach((el) =>
         found.push({ el, role: typeof role === "function" ? role(el) : role }));
     }
+    // Some ChatGPT layouts put the role on the turn instead of its message body.
+    // Select only an identified content container, never the whole turn's controls.
+    if (site.name === "ChatGPT") {
+      for (const turn of document.querySelectorAll('[data-testid^="conversation-turn-"]')) {
+        if (found.some((message) => turn.contains(message.el))) continue;
+        let role = turn.getAttribute("data-turn");
+        if (!["user", "assistant"].includes(role)) {
+          const label = (turn.querySelector("h5, h6")?.textContent || "").trim();
+          role = /^You said:\s*$/i.test(label) ? "user" : /^ChatGPT said:\s*$/i.test(label) ? "assistant" : null;
+        }
+        if (!role) continue;
+        const body = turn.querySelector("[data-message-content]") ||
+          turn.querySelector(role === "assistant" ? ".markdown" : ".whitespace-pre-wrap");
+        if (body && textOf(body)) found.push({ el: body, role });
+      }
+    }
     const set = new Set(found.map((f) => f.el));
     const seen = new Set();
     found = found.filter((f) => {
@@ -44,8 +61,24 @@
       return true;
     });
     found.sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
-    if (!found.length) found = [{ el: document.querySelector("main, [role=main], article") || document.body, role: "page" }];
+    if (!found.length && !isChatGPTConversation()) found = [{ el: document.querySelector("main, [role=main], article") || document.body, role: "page" }];
     return found;
+  }
+
+  function isChatGPTConversation() {
+    return site.name === "ChatGPT" && /^\/(?:c|share)\//.test(location.pathname);
+  }
+
+  function captureMessages() {
+    const msgs = getMessages();
+    if (isChatGPTConversation()) {
+      const missedTurn = Array.from(document.querySelectorAll('[data-testid^="conversation-turn-"]'))
+        .some((turn) => textOf(turn) && !msgs.some((message) => turn.contains(message.el)));
+      if (!msgs.length || missedTurn) {
+        throw new Error("Couldn't identify all ChatGPT message boundaries. Nothing was saved. Wait for the chat to load and reload the tab; this layout may need an updated adapter.");
+      }
+    }
+    return msgs;
   }
 
   function indexOfNode(msgs, node) {
@@ -117,6 +150,7 @@
   const pageStyle = document.createElement("style");
   document.documentElement.appendChild(pageStyle);
   function applyPageStyle() {
+    if (!S.showHighlights) { pageStyle.textContent = ""; return; }
     const c = S.color;
     pageStyle.textContent = `
       .cm-marked { box-shadow: -4px 0 0 0 ${c} !important; }
@@ -158,7 +192,8 @@
       .pv { color: #d4d4d8; margin-top: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
       .note { color: #fcd34d; font-style: italic; margin-top: 2px; }
       .missing { color: #fca5a5; }
-      .acts { display: none; gap: 4px; margin-top: 5px; }
+      .row[aria-current="true"] { outline: 1px solid var(--c); }
+      .acts { display: flex; gap: 4px; margin-top: 5px; }
       .row:hover .acts { display: flex; }
       @media (hover: none) { .acts { display: flex; } button { padding: 6px 10px; font-size: 12.5px; } .pill { padding: 10px 14px; } }
       .selbar { position: fixed; pointer-events: auto; display: flex; gap: 2px; padding: 3px;
@@ -202,7 +237,7 @@
   const hasHL = typeof CSS !== "undefined" && CSS.highlights && typeof Highlight !== "undefined";
   function setActive(item) {
     if (!hasHL) return;
-    if (item && item.range) CSS.highlights.set("cm-active", new Highlight(item.range));
+    if (S.showHighlights && item && item.range) CSS.highlights.set("cm-active", new Highlight(item.range));
     else CSS.highlights.delete("cm-active");
   }
 
@@ -221,9 +256,10 @@
     applying = true;
     try {
       document.querySelectorAll(".cm-marked").forEach((el) => el.classList.remove("cm-marked"));
-      if (hasHL) ["cm-all", "cm-over"].forEach((k) => CSS.highlights.delete(k));
+      if (hasHL) ["cm-all", "cm-over", "cm-active"].forEach((k) => CSS.highlights.delete(k));
       const markers = await getMarkers();
       const msgs = getMessages();
+      observeDeletionSources(markers, msgs);
       items = resolve(markers, msgs).map((r) => {
         const el = r.idx >= 0 ? msgs[r.idx].el : null;
         let range = null;
@@ -236,8 +272,8 @@
       });
       items.sort((a, b) => (a.idx - b.idx) ||
         (a.range && b.range ? a.range.compareBoundaryPoints(Range.START_TO_START, b.range) : 0));
-      items.forEach((it, i) => { it.n = i + 1; if (it.el) it.el.classList.add("cm-marked"); });
-      if (hasHL) {
+      items.forEach((it, i) => { it.n = i + 1; if (S.showHighlights && it.el) it.el.classList.add("cm-marked"); });
+      if (hasHL && S.showHighlights) {
         const normal = items.filter((i) => i.range && !isOver(i.m)).map((i) => i.range);
         const over = items.filter((i) => i.range && isOver(i.m)).map((i) => i.range);
         if (normal.length) CSS.highlights.set("cm-all", new Highlight(...normal));
@@ -268,7 +304,7 @@
         (it.note ? `\nNote: ${it.note}` : "") + "\nClick to show in the marker panel";
       b.onmouseenter = () => setActive(it);
       b.onmouseleave = () => setActive(null);
-      b.onclick = () => { panelOpen = true; renderPanel(); };
+      b.onclick = () => { chooseMarker(it); panelHidden = false; panelOpen = true; renderPanel(); };
       badgeLayer.appendChild(b);
     }
   }
@@ -299,13 +335,14 @@
         (S.convoBudget > 0 ? ` / ${cmFmt(S.convoBudget)}` : "") + (over ? " ⚠" : "")),
       el("span", null, panelOpen ? "▾" : "▴"));
     pill.onclick = () => { panelOpen = !panelOpen; renderPanel(); };
-    const mk = el("button", "markbtn" + (markMode ? " on" : ""), markMode ? "Done" : "✎ Mark");
-    mk.title = "Mark: tap paragraphs to mark them (or marks the text you've selected)";
+    const mk = el("button", "markbtn" + (markMode ? " on" : ""), markMode ? "Click-to-mark mode · Done" : "Selection mode · Click to mark");
+    mk.title = "Toggle click-to-mark mode. Selection mode uses native text selection; mark selected text with ★ Mark or the assigned shortcut.";
+    mk.setAttribute("aria-pressed", String(markMode));
     mk.addEventListener("pointerdown", (e) => e.preventDefault());   // keep any selection
     mk.onclick = (e) => { e.stopPropagation(); onMarkButton(); };
     pill.appendChild(mk);
     panel.appendChild(pill);
-    if (markMode) panel.appendChild(el("div", "modehint", "Tap any paragraph to mark it. Tap Done when finished."));
+    if (markMode) panel.appendChild(el("div", "modehint", "Click a paragraph to mark. Drag to select normally. Done or Escape returns to Selection mode."));
     if (!panelOpen) return;
 
     const body = el("div", "body");
@@ -324,6 +361,8 @@
     if (!items.length) list.appendChild(el("div", "empty", "No markers yet. Right-click a message → TExporT Markers → Mark this point."));
     for (const it of items) {
       const row = el("div", "row" + (isOver(it.m) ? " over" : ""));
+      row.dataset.markerId = it.id;
+      row.setAttribute("aria-current", String(it.id === selectedMarkerId));
       const rh = el("div", "rh");
       rh.append(el("span", "num", `#${it.n}`), el("span", "scope", it.scope || (it.excerpt ? "selection" : "message")),
         el("span", "size", `${it.m.words} w · ≈${it.m.tokens} tok`));
@@ -342,7 +381,14 @@
         await updateMarker(it.id, { note: v.trim() });
       };
       const del = el("button", null, "Delete");
-      del.onclick = async (e) => { e.stopPropagation(); await setMarkers((await getMarkers()).filter((m) => m.id !== it.id)); };
+      del.title = `Delete marker #${it.n}`;
+      del.setAttribute("aria-label", del.title);
+      del.onclick = async (e) => {
+        e.stopPropagation();
+        await setMarkers((await getMarkers()).filter((m) => m.id !== it.id));
+        if (selectedMarkerId === it.id) selectedMarkerId = null;
+        await applyHighlights();
+      };
       acts.append(go, nt, del);
       row.appendChild(acts);
       row.onmouseenter = () => setActive(it);
@@ -354,7 +400,7 @@
 
     const foot = el("div", "foot");
     const add = el("button", null, "Add whole chat to collection…");
-    add.onclick = () => captureWhole();
+    add.onclick = () => captureWhole().catch((error) => toast(error?.message || "Capture failed. Nothing was saved.", true));
     const mw = el("button", null, "Marker window");
     mw.title = "Open this conversation in a full-screen marker window (easiest on phones)";
     mw.onclick = () => B.runtime.sendMessage({ cmd: "open-marker" });
@@ -363,13 +409,23 @@
     const settings = el("button", null, "Settings");
     settings.onclick = () => B.runtime.sendMessage({ cmd: "open-options" });
     const hide = el("button", null, "Hide panel");
-    hide.onclick = () => { panelHidden = true; renderPanel(); toast("Panel hidden — bring it back from the TExporT Markers toolbar button (Marker panel), the right-click menu, or Alt+Shift+K."); };
-    foot.append(mw, add, cols, settings, hide);
+    hide.onclick = () => { panelHidden = true; renderPanel(); toast("Panel hidden — bring it back from the TExporT Markers toolbar button (Marker panel), the right-click menu, or your assigned toggle-panel shortcut."); };
+    const clear = el("button", "clear-markers", "Clear conversation markers");
+    clear.title = "Remove all markers from this conversation (asks for confirmation)";
+    clear.onclick = () => clearAll();
+    foot.append(mw, add, cols, settings, hide, clear);
     body.appendChild(foot);
     panel.appendChild(body);
   }
 
+  function chooseMarker(it) {
+    selectedMarkerId = it.id;
+    window.getSelection()?.removeAllRanges();
+  }
+
   function jump(it) {
+    chooseMarker(it);
+    renderPanel();
     if (!it.range) { toast("That marker isn't on the page right now.", true); return; }
     const node = it.range.startContainer.nodeType === 1 ? it.range.startContainer : it.range.startContainer.parentElement;
     node.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -403,7 +459,7 @@
     const range = sel.getRangeAt(0);
     let node = range.commonAncestorContainer;
     if (node.nodeType !== 1) node = node.parentElement;
-    if (!node || node.closest("[contenteditable=''], [contenteditable='true'], textarea, input")) return hideSelbar();
+    if (!node || isEditable(node) || editingSelection()) return hideSelbar();
     const msgs = getMessages();
     if (indexOfNode(msgs, node) < 0 && indexOfNode(msgs, sel.anchorNode) < 0) return hideSelbar();
     const rects = range.getClientRects();
@@ -433,23 +489,33 @@
     if (sel) sel.removeAllRanges();
   });
 
-  // ---- Mark mode: tap paragraphs to mark them (no right-click or long-press menu needed)
-  function onMarkButton() {
+  function isEditable(node) {
+    const e = node?.nodeType === 1 ? node : node?.parentElement;
+    return !!(e && (e.isContentEditable || e.closest("input, textarea, select, [role='textbox']")));
+  }
+  function editingSelection() {
     const sel = window.getSelection();
-    const text = sel && !sel.isCollapsed ? sel.toString().trim() : "";
-    if (text.length >= 2) {                       // something is selected: mark exactly that
-      const r = sel.getRangeAt(0);
-      lastTarget = r.commonAncestorContainer; lastAnchor = sel.anchorNode; lastSelection = text;
-      mark(false, text).then(() => sel.removeAllRanges());
-      return;
-    }
+    return isEditable(root.activeElement || document.activeElement) ||
+      isEditable(sel?.anchorNode) || isEditable(sel?.focusNode);
+  }
+
+  // Selection stays native; click-to-mark is an explicit, reversible mode.
+  function onMarkButton() {
     markMode = !markMode;
     panelOpen = false;
     renderPanel();
-    if (markMode) toast("Mark mode: tap a paragraph to mark it.");
+    toast(markMode ? "Click-to-mark mode: click a paragraph. Drag to select; Escape returns to Selection mode." : "Selection mode: select text, then use ★ Mark or your mark-selection shortcut.");
   }
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !markMode || e.defaultPrevented || e.isComposing || editingSelection() || isEditable(e.target)) return;
+    markMode = false;
+    renderPanel();
+    toast("Selection mode");
+  });
   document.addEventListener("click", (e) => {
     if (!markMode || e.composedPath().includes(host)) return;
+    if (window.getSelection()?.isCollapsed === false) return;
+    if (e.target.closest("input, textarea, select, button, a, [contenteditable]:not([contenteditable='false']), [role='button'], [role='textbox']")) return;
     const msgs = getMessages();
     if (indexOfNode(msgs, e.target) < 0) return;
     e.preventDefault(); e.stopPropagation();       // don't follow links or open menus while marking
@@ -489,7 +555,7 @@
   // The marker window (marker.html) works from this snapshot: every message's text, in order.
   async function snapshot(loadAll) {
     if (loadAll) await loadWholeConversation();
-    const msgs = getMessages();
+    const msgs = captureMessages();
     return {
       key: convoKey(), url: location.href, site: site.name,
       title: document.title.replace(/\s*[-|–]\s*(Claude|ChatGPT|Gemini)\s*$/i, "").trim() || site.name + " conversation",
@@ -499,6 +565,7 @@
 
   async function captureWhole() {
     const n = await loadWholeConversation();
+    captureMessages(); // Fail before asking for a collection or touching saved captures.
     toast(`Loaded ${n} messages.`);
     await capture();
   }
@@ -507,6 +574,7 @@
   async function mark(withNote, selectionText, fromKeyboard, forceParagraph) {
     S = await cmGetSettings();
     if (fromKeyboard) {
+      if (editingSelection()) { toast("Not marked: leave the editable field and select conversation text first.", true); return; }
       const sel = window.getSelection();
       lastSelection = sel ? sel.toString() : "";
       lastAnchor = sel && sel.rangeCount ? sel.anchorNode : null;
@@ -570,6 +638,93 @@
     toast(warnings.length ? `${head} — ⚠ ${warnings.join("; ")}` : head, warnings.length > 0);
   }
 
+  // Session-only deletion evidence. Display resolution must never confer authority.
+  // Legacy prefix/index records cannot prove identity before this document observed them.
+  // Keep rejected/stale entries as tombstones: a later unique match must not rebind them.
+  const deletionSources = new Map();
+  const sourceKey = (mk) => JSON.stringify([convoKey(), mk.id]);
+  const sourceEvidence = (mk) => JSON.stringify([mk.msgIndex, mk.role, mk.prefix, mk.excerpt]);
+  function observeDeletionSources(markers, msgs) {
+    for (const mk of markers) {
+      const key = sourceKey(mk), evidence = sourceEvidence(mk);
+      let source = deletionSources.get(key);
+      if (!source) {
+        const matches = mk.prefix ? msgs.filter((m) => textOf(m.el).startsWith(mk.prefix)) : [];
+        const candidate = matches.length === 1 ? matches[0] : null;
+        const idx = candidate ? msgs.indexOf(candidate) : -1;
+        source = { evidence, el: candidate?.el, idx, text: candidate ? textOf(candidate.el) : "",
+          valid: !!candidate && idx === mk.msgIndex && (!mk.role || candidate.role === mk.role) };
+        deletionSources.set(key, source);
+      }
+      if (source.evidence !== evidence || !source.el?.isConnected ||
+          msgs[source.idx]?.el !== source.el || textOf(source.el) !== source.text ||
+          (mk.role && msgs[source.idx]?.role !== mk.role)) source.valid = false;
+    }
+  }
+  function revokeDeletionSources(mutations) {
+    for (const source of deletionSources.values()) {
+      if (!source.valid) continue;
+      // Record even transient remove/reinsert or change/restore before the debounce.
+      if (mutations.some((m) => source.el.contains(m.target) ||
+          Array.from(m.removedNodes).some((n) => n === source.el || n.contains(source.el)))) source.valid = false;
+    }
+    const msgs = getMessages();
+    for (const source of deletionSources.values()) {
+      if (source.valid && (msgs[source.idx]?.el !== source.el || textOf(source.el) !== source.text)) source.valid = false;
+    }
+  }
+
+  function deletionItems(list) {
+    const msgs = getMessages();
+    observeDeletionSources(list, msgs);
+    return list.map((mk) => {
+      const source = deletionSources.get(sourceKey(mk));
+      const el = source.valid ? source.el : null;
+      let range = null;
+      if (el) {
+        if (mk.excerpt) {
+          const text = textOf(el).replace(/\s/g, ""), needle = mk.excerpt.replace(/\s/g, "");
+          // Old markers have no character offsets: repeated excerpts cannot identify one span safely.
+          if (needle && text.indexOf(needle) === text.lastIndexOf(needle)) range = findRange(el, mk.excerpt);
+        } else if (mk.prefix) {
+          range = document.createRange(); range.selectNodeContents(el);
+        }
+      }
+      return { id: mk.id, range };
+    });
+  }
+
+  function overlapsSelection(markerRange, selectionRange) {
+    if (selectionRange.collapsed) return markerRange.comparePoint(selectionRange.startContainer, selectionRange.startOffset) === 0;
+    const overlap = selectionRange.cloneRange();
+    if (overlap.compareBoundaryPoints(Range.START_TO_START, markerRange) < 0)
+      overlap.setStart(markerRange.startContainer, markerRange.startOffset);
+    if (overlap.compareBoundaryPoints(Range.END_TO_END, markerRange) > 0)
+      overlap.setEnd(markerRange.endContainer, markerRange.endOffset);
+    return !overlap.collapsed;
+  }
+
+  async function deleteMarker() {
+    if (editingSelection()) { toast("Not deleted: leave the composer or editable field first.", true); return; }
+    const sel = window.getSelection();
+    // A fresh selection/caret always takes precedence; never fall back after an ambiguous selection.
+    const ranges = sel ? Array.from({ length: sel.rangeCount }, (_, i) => sel.getRangeAt(i).cloneRange()) : [];
+    const chosenId = selectedMarkerId;
+    const list = await getMarkers();
+    const candidates = deletionItems(list);
+    const targets = ranges.length ? candidates.filter((it) => it.range && ranges.some((r) => overlapsSelection(it.range, r))) :
+      candidates.filter((it) => it.id === chosenId && it.range);
+    if (targets.length !== 1) {
+      toast(targets.length > 1 ? "Not deleted: selection overlaps multiple markers. Select just one passage or choose a marker with Show." :
+        "Not deleted: no resolved marker chosen. Use a marker row, Show or badge, or select text inside exactly one marker.", true);
+      return;
+    }
+    await setMarkers(list.filter((mk) => mk.id !== targets[0].id));
+    selectedMarkerId = null;
+    await applyHighlights();
+    toast("Deleted one marker. Conversation text and saved collection snapshots are unchanged.");
+  }
+
   async function unmark() {
     const msgs = getMessages();
     let idx = indexOfNode(msgs, lastTarget);
@@ -589,10 +744,13 @@
     if (!list.length) { toast("No markers in this conversation."); return; }
     if (!confirm(`Remove all ${list.length} markers from this conversation?`)) return;
     await setMarkers([]);
-    toast("All markers cleared.");
+    selectedMarkerId = null;
+    await applyHighlights();
+    toast("All markers cleared. Saved collection snapshots are unchanged.");
   }
 
   async function capture() {
+    captureMessages();
     S = await cmGetSettings();
     const r = await B.storage.local.get("collections");
     const cols = r.collections || {};
@@ -609,7 +767,7 @@
     else { colId = uid(); col = { name: ans.trim(), created: new Date().toISOString(), convos: [] }; }
 
     await applyHighlights();
-    const msgs = getMessages();
+    const msgs = captureMessages();
     const convo = {
       key: convoKey(), url: location.href,
       title: document.title.replace(/\s*[-|–]\s*(Claude|ChatGPT|Gemini)\s*$/i, "").trim() || site.name + " conversation",
@@ -636,7 +794,11 @@
   B.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const r = handle(msg);
     if (r && typeof r.then === "function") {
-      r.then(sendResponse, () => sendResponse(undefined));
+      r.then(sendResponse, (error) => {
+        const message = error?.message || "Capture failed. Nothing was saved.";
+        toast(message, true);
+        sendResponse({ error: message });
+      });
       return true;                 // reply comes later (works in Chrome and Firefox)
     }
     return false;
@@ -647,6 +809,10 @@
       case "cm-mark": return mark(false, msg.selection);
       case "cm-mark-note": return mark(true, msg.selection);
       case "cm-mark-key": return mark(false, "", true);
+      case "cm-toggle-mark-mode":
+        if (editingSelection()) { toast("Leave the editable field before changing marking mode.", true); return Promise.resolve(false); }
+        onMarkButton(); return Promise.resolve(true);
+      case "cm-delete-marker": return deleteMarker();
       case "cm-unmark": return unmark();
       case "cm-clear": return clearAll();
       case "cm-capture": return captureWhole();
@@ -671,6 +837,7 @@
   let debounce;
   new MutationObserver((muts) => {
     if (muts.every((m) => host.contains(m.target) || m.target === host)) return;
+    revokeDeletionSources(muts);
     clearTimeout(debounce);
     debounce = setTimeout(applyHighlights, 800);
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
