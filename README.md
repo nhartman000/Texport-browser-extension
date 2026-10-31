@@ -59,6 +59,7 @@ This makes it hard for a model to quietly drop marked content, and easy for you 
 - **See what each marker captures.** The exact text is highlighted, a size badge (`#2 · 32 tok`) sits at its start, and a panel lists every marker with its words and ≈tokens.
 - **Limits and budgets.** Set a per-marker limit (warn, trim or block) and budgets per conversation and per collection. Measure in tokens, words or characters, so a handoff fits the next model's context window.
 - **Collections.** Combine any number of conversations, from any of the supported sites, into one document.
+- **ICM / packed MG8 authoring.** On a collection export page choose **Export ICM / AI organization**: deterministic labelled source folders, optional copy-prompt/paste JSON organization with explicit review, self-contained `.mg8` units, multi-file G8SON drops that save a new unit, and ordered `.mg8pk` packaging. No backend/model calls or gate execution; source snapshots and original marker identities are preserved. See [ICM workflow, security limits and interop API](docs/ICM_PACKED.md).
 - **Export as PDF or Markdown,** with reader instructions, a marked-passages register and inline tags (see [The export document](#the-export-document)).
 - **Private.** Everything stays in your browser: no account, no server, no analytics, no network requests.
 

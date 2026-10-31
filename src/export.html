@@ -31,6 +31,13 @@
   .reg-item.over { border-left-color: #ef4444; }
   .budget-warn { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 8px 12px; border-radius: 6px; font: 13px system-ui, sans-serif; margin-bottom: 12px; }
   .omitted { color: var(--muted); font-style: italic; margin: 8px 0; font-family: system-ui, sans-serif; font-size: 9.5pt; }
+  .icm-panel { border: 2px solid #d97706; padding: 16px; margin: 16px 0; font: 14px system-ui,sans-serif; }
+  .icm-panel textarea { display: block; box-sizing: border-box; width: 100%; margin: 8px 0; font: 13px monospace; }
+  .icm-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420px; overflow: auto; }
+  .icm-panel button, #icm-open { padding: 8px; margin: 6px 4px 6px 0; cursor: pointer; }
+  .icm-panel input { display: block; margin: 8px 0; max-width: 100%; }
+  .icm-drop { padding: 18px; border: 2px dashed #d97706; }
+  @media print { .icm-panel, #icm-open { display:none !important; } }
   @media print { .budget-warn { display: none; } }
   @media print { .toolbar, .rm { display: none !important; } body { padding: 0; max-width: none; } }
 </style>
@@ -38,6 +45,9 @@
 <body>
   <div id="app"></div>
   <script src="settings.js"></script>
+  <script src="packed.js"></script>
+  <script src="icm.js"></script>
+  <script src="icm-ui.js"></script>
   <script src="export.js"></script>
 </body>
 </html>

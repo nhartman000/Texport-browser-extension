@@ -2,6 +2,16 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.8.0] — Unreleased
+### Added
+- Export-page ICM workspace organization with source-preserving marker text, themes and optional copy-prompt/paste AI proposals, preview and explicit approval.
+- Versioned physical packed `.mg8` files containing GST, bounded G8SON resources, ORK and QSON; uncompressed storage with integrity and strict validation.
+- Non-destructive multi-file gate drag-and-drop, member/order preview and save-as-new unit.
+- Ordered `.mg8pk` composition, with 4/6/8/12-unit package downloads tested.
+- Malformed archive/audit rejection and stale-approval/save-race regression tests.
+
+These are authoring and packaging features, not automatic provider calls, gate evaluation or a multi-unit execution runtime. Legacy exports and existing permissions are unchanged.
+
 ## [1.7.2] — 2026-10-24
 ### Added
 - Native shortcuts for Selection / Click-to-mark mode (`Alt+Shift+H`) and safe single-marker deletion (`Alt+Shift+U`). Existing mark-selection and panel shortcuts remain available.

@@ -268,6 +268,7 @@ if (typeof browser !== "undefined" && typeof document !== "undefined" && documen
       h("button", { textContent: "All collections", onclick: () => { location.search = ""; } }),
       status));
 
+    mountTexportICM(app, col);
     if (overBudget) {
       app.append(h("div", { className: "budget-warn", textContent:
         `⚠ Marked text is ${cmFmt(sizeVal)} ${cmUnitLabel(S.unit)} — over your collection budget of ${cmFmt(S.collectionBudget)}. ` +

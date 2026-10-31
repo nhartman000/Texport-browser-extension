@@ -1,6 +1,6 @@
 {
   "name": "texport-browser-extension",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "private": true,
   "description": "TExporT Markers: mark key points in AI chats and export a handoff the next AI won't lose. Firefox + Chrome.",
   "license": "SEE LICENSE IN LICENSE",
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "bash build.sh",
     "test": "node --test tests/unit/*.test.cjs",
-    "test:e2e": "bash build.sh && python3 tests/e2e/test_chromium.py && python3 tests/e2e/test_chatgpt_capture.py && python3 tests/e2e/test_selection_ux.py",
+    "test:e2e": "bash build.sh && python3 tests/e2e/test_chromium.py && python3 tests/e2e/test_chatgpt_capture.py && python3 tests/e2e/test_selection_ux.py && python3 tests/e2e/test_icm.py",
     "screenshots": "bash build.sh && python3 tools/screenshots.py",
     "icons": "python3 tools/make_icons.py"
   },
