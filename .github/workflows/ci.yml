@@ -34,8 +34,8 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
-      - name: End-to-end test in Chromium (Claude, ChatGPT, Gemini mock pages)
-        run: python tests/e2e/test_chromium.py
+      - name: Full offline Chromium regression suite, including ICM authoring
+        run: npm run test:e2e
 
       - uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-01-01T00:00:00Z",
+  "collection": {
+    "name": "Offline ICM authoring example",
+    "created": "2026-01-01T00:00:00Z",
+    "convos": [{
+      "key": "offline-example",
+      "url": "https://example.invalid/offline-fixture",
+      "title": "Manually authored source fixture, not an AI response",
+      "site": "offline fixture",
+      "capturedAt": "2026-01-01T00:00:00Z",
+      "messages": [{"role": "user", "text": "Keep the configured limit below 10."}, {"role": "assistant", "text": "This is unmarked contextual fixture text."}],
+      "markers": [{"id": "original-marker-1", "idx": 0, "scope": "message", "note": "Preserve the strict bound."}]
+    }]
+  },
+  "plan": {
+    "version": 1,
+    "groups": [{"name": "requirements", "title": "Reviewed requirements", "marker_ids": ["M1"], "conditions": [{"text": "The configured limit must remain below 10.", "source_marker_ids": ["M1"]}]}],
+    "gestalt": "Offline authoring fixture; no runtime evaluation",
+    "variables": {"configured_limit": null}
+  }
+}
