@@ -54,3 +54,6 @@ Mark passages in AI chat conversations (or a page the user chooses) and export t
 - Store icon 128×128: `store-icon-128.png`
 - Screenshots 1280×800: `screenshot-1-markers.png`, `screenshot-2-collect.png`, `screenshot-3-export.png`, `screenshot-4-marker-window.png`, `screenshot-5-smart-marker.png`
 - Small promo tile 440×280: `promo-440x280.png`
+- Marquee promo tile 1400×560 (optional): `marquee-1400x560.png`
+
+All promo tiles and screenshots are 24-bit PNG with no alpha, as the store requires. Only the store icon has transparency.
