@@ -132,7 +132,7 @@ async function addMarker(mi, excerpt, scope, note = "") {
     if (n === null) return;
     note = n.trim();
   }
-  list.push({ id: uid(), msgIndex: mi, role: m.role, prefix: m.text.slice(0, 120), excerpt, scope, note, created: new Date().toISOString() });
+  list.push({ id: uid(), msgIndex: mi, role: m.role, prefix: m.text.slice(0, 120), excerpt, scope, note, created: new Date().toISOString(), text: excerpt ? "" : m.text.slice(0, 20000) });
   await setMarkers(list);
   toast(`Marked ${scope}: ${size.words} words · ≈${size.tokens} tokens`);
 }

@@ -20,8 +20,24 @@ var CM_DEFAULTS = {
   registerPlacement: "both", // top | both | end
   exportContent: "full",     // full | marked
   exportCounts: true,        // show sizes in the export register
-  extraInstructions: ""
+  extraInstructions: "",
+  pageKeys: true,            // page shortcuts below work while a supported page has focus
+  markKey: "Ctrl+M",         // mark the selected text (it goes straight into the marker panel)
+  // add the whole chat to a collection (picker), then Export. Firefox quits on Ctrl+Q, so it gets Ctrl+Alt+Q.
+  collectKey: typeof navigator !== "undefined" && /Firefox\//.test(navigator.userAgent || "") ? "Ctrl+Alt+Q" : "Ctrl+Q"
 };
+
+// "Ctrl+Alt+Q" -> does this keydown match? Uses the physical key (e.code), so keyboard layouts don't matter.
+function cmKeyMatches(e, combo) {
+  if (!combo) return false;
+  const parts = combo.split("+").map((p) => p.trim().toLowerCase()).filter(Boolean);
+  const key = parts.pop();
+  if (!key) return false;
+  const want = { ctrl: parts.includes("ctrl"), alt: parts.includes("alt"), shift: parts.includes("shift"), meta: parts.includes("meta") || parts.includes("cmd") };
+  if (e.ctrlKey !== want.ctrl || e.altKey !== want.alt || e.shiftKey !== want.shift || e.metaKey !== want.meta) return false;
+  const code = (e.code || "").toLowerCase();
+  return code === "key" + key || code === "digit" + key || (e.key || "").toLowerCase() === key;
+}
 
 async function cmGetSettings() {
   const r = await browser.storage.local.get("settings");
@@ -60,4 +76,4 @@ function cmTrim(text, amount, unit) {
   return (sp > maxChars * 0.6 ? cut.slice(0, sp) : cut).trim();
 }
 
-if (typeof module !== "undefined") module.exports = { CM_DEFAULTS, cmMeasure, cmUnitValue, cmUnitLabel, cmFmt, cmTrim };
+if (typeof module !== "undefined") module.exports = { cmKeyMatches, CM_DEFAULTS, cmMeasure, cmUnitValue, cmUnitLabel, cmFmt, cmTrim };

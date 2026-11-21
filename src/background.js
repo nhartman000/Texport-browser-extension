@@ -61,6 +61,8 @@ if (browser.commands) browser.commands.onCommand.addListener(async (command) => 
 });
 
 browser.runtime.onMessage.addListener((msg, sender) => {
+  if (msg && msg.cmd === "open-export")
+    browser.tabs.create({ url: browser.runtime.getURL("export.html" + (msg.colId ? "?c=" + encodeURIComponent(msg.colId) : "")) });
   if (msg && msg.cmd === "open-marker" && sender.tab)
     browser.tabs.create({ url: browser.runtime.getURL("marker.html?tab=" + sender.tab.id) });
   if (msg && msg.cmd === "open-options") browser.runtime.openOptionsPage();

@@ -52,6 +52,13 @@
         if (body && textOf(body)) found.push({ el: body, role });
       }
     }
+    if (site.name === "Claude") {
+      for (const f of found) {
+        if (!f.el.matches('[data-testid="assistant-message"]')) continue;
+        const body = f.el.querySelector("[data-transcript-engine-root]") || f.el.querySelector(".standard-markdown");
+        if (body) f.el = body;
+      }
+    }
     const set = new Set(found.map((f) => f.el));
     const seen = new Set();
     found = found.filter((f) => {
@@ -98,7 +105,7 @@
         const flat = mk.excerpt.replace(/\s+/g, "");
         best = texts.findIndex((t) => t.replace(/\s+/g, "").includes(flat));
       }
-      if (best < 0 && mk.msgIndex < texts.length) best = mk.msgIndex;
+      if (best < 0 && !mk.prefix && mk.msgIndex < texts.length) best = mk.msgIndex;   // legacy markers only
       return { ...mk, idx: best };
     });
   }
@@ -211,6 +218,15 @@
       button:hover { background: rgba(255,255,255,.2); }
       .foot { display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid rgba(255,255,255,.1); flex-wrap: wrap; }
       .empty { padding: 10px 12px; color: #a1a1aa; }
+      .picker { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); width: min(380px, calc(100vw - 24px));
+        pointer-events: auto; background: rgba(24,24,27,.97); color: #f4f4f5; border: 1px solid rgba(255,255,255,.16);
+        border-radius: 12px; padding: 12px; box-shadow: 0 12px 36px rgba(0,0,0,.45); font-size: 13px; z-index: 2; outline: none; }
+      .picker .ph { font-weight: 600; margin-bottom: 8px; }
+      .picker .opt { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 7px 10px; font-size: 13px; }
+      .picker .opt.primary { background: var(--c, #f59e0b); color: #111; border-color: transparent; font-weight: 700; text-align: center; }
+      .picker input { width: 100%; margin: 6px 0; padding: 7px 9px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2);
+        background: #111; color: #f4f4f5; font: inherit; }
+      .picker .prow { display: flex; gap: 6px; } .picker .prow .opt { flex: 1; }
       .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); pointer-events: none;
         background: #1f2937; color: #fff; font-size: 13.5px; padding: 10px 16px; border-radius: 8px;
         box-shadow: 0 4px 16px rgba(0,0,0,.3); max-width: 70vw; }
@@ -267,7 +283,7 @@
           if (r.excerpt) range = findRange(el, r.excerpt);
           else { range = document.createRange(); range.selectNodeContents(el); }
         }
-        const text = r.excerpt || (el ? textOf(el) : "");
+        const text = r.excerpt || (el ? textOf(el) : (r.text || ""));
         return { ...r, el, range, text, m: cmMeasure(text) };
       });
       items.sort((a, b) => (a.idx - b.idx) ||
@@ -367,8 +383,11 @@
       rh.append(el("span", "num", `#${it.n}`), el("span", "scope", it.scope || (it.excerpt ? "selection" : "message")),
         el("span", "size", `${it.m.words} w · ≈${it.m.tokens} tok`));
       row.appendChild(rh);
-      if (!it.range) row.appendChild(el("div", "pv missing", "Not found on the page right now (scroll it into view, or the text changed)."));
-      else row.appendChild(el("div", "pv", it.text.slice(0, 220)));
+      if (!it.range && !it.text) row.appendChild(el("div", "pv missing", "Not found on the page right now (scroll it into view, or the text changed)."));
+      else {
+        row.appendChild(el("div", "pv", it.text.slice(0, 220)));
+        if (!it.range) row.appendChild(el("div", "scope", "off screen — saved, and included in exports"));
+      }
       if (it.note) row.appendChild(el("div", "note", it.note));
       const acts = el("div", "acts");
       const go = el("button", null, "Show");
@@ -506,6 +525,83 @@
     renderPanel();
     toast(markMode ? "Click-to-mark mode: click a paragraph. Drag to select; Escape returns to Selection mode." : "Selection mode: select text, then use ★ Mark or your mark-selection shortcut.");
   }
+  // ---- Page shortcuts: Ctrl+M marks the selection (straight into the panel), Ctrl+Q opens the collection picker.
+  // Keys are set in Settings. Browser-reserved keys (Ctrl+T, Ctrl+W, Ctrl+N…) can't be used by any page or extension.
+  document.addEventListener("keydown", (e) => {
+    if (!S.pageKeys || e.defaultPrevented || e.isComposing || e.repeat) return;
+    const isMark = cmKeyMatches(e, S.markKey), isCollect = cmKeyMatches(e, S.collectKey);
+    if (!isMark && !isCollect) return;
+    if (isEditable(e.target) || editingSelection()) return;      // typing in the chat box keeps its own keys
+    e.preventDefault(); e.stopPropagation();
+    if (isMark) {
+      const sel = window.getSelection();
+      const text = sel && !sel.isCollapsed ? sel.toString().trim() : "";
+      if (!text) { toast(`Select some text first, then press ${S.markKey}.`); return; }
+      lastAnchor = sel.anchorNode; lastTarget = sel.getRangeAt(0).commonAncestorContainer; lastSelection = text;
+      mark(false, text).then(() => sel.removeAllRanges());
+    } else {
+      collectPicker();
+    }
+  }, true);
+
+  // In-page collection picker (Ctrl+Q): pick or create a collection, the whole chat is read and saved, then Export.
+  function collectPicker() {
+    root.querySelectorAll(".picker").forEach((x) => x.remove());
+    B.storage.local.get("collections").then(({ collections = {} }) => {
+      const entries = Object.entries(collections).sort((a, b) => b[1].created.localeCompare(a[1].created));
+      const box = el("div", "picker");
+      const close = () => { box.remove(); document.removeEventListener("keydown", onKey, true); };
+      const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+      document.addEventListener("keydown", onKey, true);
+      box.append(el("div", "ph", `Add this chat (${items.length} marker${items.length === 1 ? "" : "s"}) to…`));
+      entries.forEach(([id, c], i) => {
+        const b = el("button", "opt", `${i < 9 ? i + 1 + ". " : ""}${c.name}  (${c.convos.length})`);
+        b.onclick = () => { close(); collectInto(id, c); };
+        box.append(b);
+      });
+      const name = document.createElement("input");
+      name.placeholder = entries.length ? "…or a new collection name" : "New collection name";
+      name.addEventListener("keydown", (e) => {
+        e.stopPropagation();
+        if (e.key === "Enter" && name.value.trim()) { close(); collectInto(uid(), { name: name.value.trim(), created: new Date().toISOString(), convos: [] }); }
+        if (e.key === "Escape") close();
+      });
+      box.append(name);
+      const row = el("div", "prow");
+      const create = el("button", "opt primary", "Create");
+      create.onclick = () => { if (!name.value.trim()) { name.focus(); return; } close(); collectInto(uid(), { name: name.value.trim(), created: new Date().toISOString(), convos: [] }); };
+      const cancel = el("button", "opt", "Cancel");
+      cancel.onclick = close;
+      row.append(create, cancel);
+      box.append(row);
+      root.appendChild(box);
+      box.addEventListener("keydown", (e) => {               // 1–9 pick a collection
+        const n = Number(e.key);
+        if (n >= 1 && n <= Math.min(9, entries.length) && e.target === box) { close(); collectInto(...entries[n - 1]); }
+      });
+      box.tabIndex = -1;
+      (entries.length ? box : name).focus();
+    });
+  }
+
+  async function collectInto(colId, col) {
+    try {
+      const saved = await saveCapture(colId, col);
+      root.querySelectorAll(".picker").forEach((x) => x.remove());
+      const box = el("div", "picker");
+      box.append(el("div", "ph", `Saved to “${saved.name}”: ${saved.messages} messages, ${saved.markers} markers.`));
+      const ex = el("button", "opt primary", "Export");
+      ex.onclick = () => { box.remove(); B.runtime.sendMessage({ cmd: "open-export", colId }); };
+      const done = el("button", "opt", "Close");
+      done.onclick = () => box.remove();
+      const row = el("div", "prow"); row.append(ex, done); box.append(row);
+      root.appendChild(box);
+      ex.focus();
+    } catch (err) {
+      toast(err.message || "Capture failed. Nothing was saved.", true);
+    }
+  }
+
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape" || !markMode || e.defaultPrevented || e.isComposing || editingSelection() || isEditable(e.target)) return;
     markMode = false;
@@ -552,21 +648,106 @@
     await wait(300);
     return getMessages().length;
   }
+  // Stable identity for a message element, so a sweep can merge what it sees screen by screen.
+  function messageKey(m, text) {
+    const row = m.el.closest("[data-rs-index]");
+    const turn = m.el.closest("[data-turn-key], [data-message-id], [data-testid^='conversation-turn-']");
+    const tk = turn ? (turn.getAttribute("data-turn-key") || turn.getAttribute("data-message-id") || turn.getAttribute("data-testid")) : "";
+    if (row || tk) return { key: `${row ? row.getAttribute("data-rs-index") : ""}|${tk}|${m.role}`, rank: row ? Number(row.getAttribute("data-rs-index")) : null };
+    return { key: m.role + "|" + text.slice(0, 400), rank: null };
+  }
+
+  // Read every message, even on sites that only keep the messages near the screen loaded
+  // (claude.ai since Oct 2026): scroll to the top, then down a screen at a time, collecting as we go.
+  async function sweepConversation() {
+    const seen = new Map();
+    let order = 0;
+    const harvest = () => {
+      for (const m of getMessages()) {
+        const text = textOf(m.el);
+        if (!text) continue;
+        const { key, rank } = messageKey(m, text);
+        const prev = seen.get(key);
+        if (!prev) seen.set(key, { role: m.role, text, rank, order: order++ });
+        else if (text.length > prev.text.length) prev.text = text;
+      }
+    };
+    const first = getMessages()[0];
+    if (!first) return [];
+    const sc = scrollerFor(first.el);
+    const start = sc.scrollTop;
+    harvest();
+    let stable = 0, lastSig = "", rounds = 0;            // 1. up to the very top (loads older messages too)
+    while (stable < 2 && rounds < 80) {
+      rounds++;
+      sc.scrollTop = 0;
+      await wait(rounds < 3 ? 500 : 700);
+      harvest();
+      const sig = sc.scrollHeight + "|" + seen.size;
+      stable = sig === lastSig ? stable + 1 : 0;
+      lastSig = sig;
+      toast(`Reading the whole conversation… ${seen.size} messages`);
+    }
+    order = 0; seen.forEach((v) => { v.order = -1; });   // 2. sweep down, re-ordering by first appearance from the top
+    const reorder = new Map();
+    for (let guard = 0; guard < 600; guard++) {
+      for (const m of getMessages()) {
+        const text = textOf(m.el);
+        if (!text) continue;
+        const { key, rank } = messageKey(m, text);
+        if (!seen.has(key)) seen.set(key, { role: m.role, text, rank, order: -1 });
+        const v = seen.get(key);
+        if (text.length > v.text.length) v.text = text;
+        if (!reorder.has(key)) reorder.set(key, reorder.size);
+      }
+      if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2) break;
+      const before = sc.scrollTop;
+      sc.scrollTop = before + Math.max(150, sc.clientHeight * 0.6);
+      await wait(300);
+      if (sc.scrollTop === before) break;
+      if (guard % 4 === 0) toast(`Reading the whole conversation… ${seen.size} messages`);
+    }
+    sc.scrollTop = start;                                  // 3. back where you were
+    await wait(200);
+    const all = [...seen.entries()].map(([key, v]) => ({ ...v, order: reorder.has(key) ? reorder.get(key) : 1e9 }));
+    const ranked = all.every((v) => v.rank !== null);
+    all.sort((a, b) => ranked ? a.rank - b.rank : a.order - b.order);
+    return all.map(({ role, text }) => ({ role, text }));
+  }
+
+  // Put saved markers on the right message of a full (swept) transcript.
+  function placeMarkers(stored, messages) {
+    const texts = messages.map((m) => m.text);
+    const flat = (t) => (t || "").replace(/\s+/g, "");
+    const flats = texts.map(flat);
+    return stored.map((mk) => {
+      let cands = mk.prefix ? texts.map((t, i) => (t.startsWith(mk.prefix) ? i : -1)).filter((i) => i >= 0) : [];
+      let idx = -1;
+      if (mk.excerpt) {
+        const f = flat(mk.excerpt);
+        const inPrefix = cands.filter((i) => flats[i].includes(f));
+        idx = inPrefix.length ? inPrefix[0] : flats.findIndex((t) => t.includes(f));
+      } else {
+        if (!cands.length && mk.text) cands = texts.map((t, i) => (t === mk.text || t.startsWith(mk.text.slice(0, PREFIX_LEN)) ? i : -1)).filter((i) => i >= 0);
+        idx = cands.length ? cands[0] : -1;
+      }
+      // a marker whose message can't be found keeps its text, so the export never loses it
+      return { id: mk.id, idx, excerpt: mk.excerpt || (idx < 0 ? (mk.text || "") : ""), note: mk.note, scope: mk.scope };
+    });
+  }
+
   // The marker window (marker.html) works from this snapshot: every message's text, in order.
   async function snapshot(loadAll) {
-    if (loadAll) await loadWholeConversation();
     const msgs = captureMessages();
     return {
       key: convoKey(), url: location.href, site: site.name,
       title: document.title.replace(/\s*[-|–]\s*(Claude|ChatGPT|Gemini)\s*$/i, "").trim() || site.name + " conversation",
-      messages: msgs.map((m) => ({ role: m.role, text: textOf(m.el) }))
+      messages: loadAll ? await sweepConversation() : msgs.map((m) => ({ role: m.role, text: textOf(m.el) }))
     };
   }
 
   async function captureWhole() {
-    const n = await loadWholeConversation();
     captureMessages(); // Fail before asking for a collection or touching saved captures.
-    toast(`Loaded ${n} messages.`);
     await capture();
   }
 
@@ -630,7 +811,8 @@
     }
     list.push({
       id: uid(), msgIndex: idx, role: msgs[idx].role, prefix: textOf(msgEl).slice(0, PREFIX_LEN),
-      excerpt, scope, note, created: new Date().toISOString()
+      excerpt, scope, note, created: new Date().toISOString(),
+      text: excerpt ? "" : textOf(msgEl).slice(0, 20000)
     });
     await setMarkers(list);
     await applyHighlights();
@@ -749,6 +931,27 @@
     toast("All markers cleared. Saved collection snapshots are unchanged.");
   }
 
+  async function saveCapture(colId, col) {
+    captureMessages();
+    const messages = await sweepConversation();
+    if (!messages.length) throw new Error("No messages found on this page. Nothing was saved.");
+    const r = await B.storage.local.get("collections");
+    const cols = r.collections || {};
+    const target = cols[colId] || col;
+    const convo = {
+      key: convoKey(), url: location.href,
+      title: document.title.replace(/\s*[-|–]\s*(Claude|ChatGPT|Gemini)\s*$/i, "").trim() || site.name + " conversation",
+      site: site.name, capturedAt: new Date().toISOString(),
+      messages, markers: placeMarkers(await getMarkers(), messages)
+    };
+    const i = target.convos.findIndex((c) => c.key === convo.key);
+    if (i >= 0) target.convos[i] = convo; else target.convos.push(convo);
+    cols[colId] = target;
+    await B.storage.local.set({ collections: cols });
+    await applyHighlights();
+    return { name: target.name, messages: messages.length, markers: convo.markers.length };
+  }
+
   async function capture() {
     captureMessages();
     S = await cmGetSettings();
@@ -766,15 +969,17 @@
     if (String(num) === ans.trim() && num >= 1 && num <= entries.length) [colId, col] = entries[num - 1];
     else { colId = uid(); col = { name: ans.trim(), created: new Date().toISOString(), convos: [] }; }
 
-    await applyHighlights();
-    const msgs = captureMessages();
+    captureMessages();
+    const messages = await sweepConversation();
+    if (!messages.length) throw new Error("No messages found on this page. Nothing was saved.");
     const convo = {
       key: convoKey(), url: location.href,
       title: document.title.replace(/\s*[-|–]\s*(Claude|ChatGPT|Gemini)\s*$/i, "").trim() || site.name + " conversation",
       site: site.name, capturedAt: new Date().toISOString(),
-      messages: msgs.map((m) => ({ role: m.role, text: textOf(m.el) })),
-      markers: items.map(({ id, idx, excerpt, note, scope }) => ({ id, idx, excerpt, note, scope }))
+      messages,
+      markers: placeMarkers(await getMarkers(), messages)
     };
+    await applyHighlights();
     const existing = col.convos.findIndex((c) => c.key === convo.key);
     if (existing >= 0) col.convos[existing] = convo; else col.convos.push(convo);
     cols[colId] = col;

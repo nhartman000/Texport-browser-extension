@@ -8,7 +8,7 @@ and export a handoff document the next AI can't quietly lose.
 </p>
 
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.7.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.8.0
 </p>
 
 ---
@@ -227,6 +227,17 @@ Open Settings from the popup (⚙), the marker panel, or right-click → **TExpo
 | Export | Register placement (start and end, start, end) · full conversation or only marked messages · sizes in the register · extra instructions for the reading AI |
 
 Every setting, its storage key and its default are listed in [docs/SETTINGS.md](docs/SETTINGS.md).
+
+## Keyboard workflow
+1. Select text in the conversation and press **Ctrl+M**. The marker goes straight into the marker panel; nothing opens.
+2. Keep going: select, **Ctrl+M**, select, **Ctrl+M**…
+3. Open the panel (the TExporT chip) any time to see everything you've marked.
+4. Press **Ctrl+Q**. A picker pops up. Click a collection, press its number, or type a new name and press Enter. TExporT reads the **whole** conversation and saves it with your markers.
+5. Click **Export** to open the export page, then choose **Save as PDF** or **Download Markdown**.
+
+The keys can be changed in Settings → Page shortcuts.
+- **Firefox:** Ctrl+Q quits Firefox, so the default there is **Ctrl+Alt+Q**.
+- **Reserved keys:** Ctrl+T, Ctrl+W and Ctrl+N belong to the browser, and no extension can use them.
 
 ## Keyboard shortcuts
 | Shortcut | Action |

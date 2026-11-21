@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- Mock of claude.ai's Oct-2026 transcript: data-testid rows, assistant chrome (sr-only heading,
+     reasoning row, action bar) and a virtualized list that only mounts rows near the viewport. -->
+<html><head><meta charset="utf-8"><title>Release gates - Claude</title>
+<style>
+  body { margin: 0; font: 16px/1.5 system-ui; }
+  #scroller { height: 600px; overflow-y: auto; }
+  #inner { position: relative; }
+  [data-testid="transcript-row"] { position: absolute; left: 0; right: 0; padding: 8px 16px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style></head>
+<body><nav>Recents · Projects · New chat</nav>
+<main><div id="scroller"><div id="inner"></div></div></main>
+<script>
+  const N = 40, ROW = 140;
+  const msgs = [];
+  for (let i = 0; i < N; i++) {
+    if (i % 2 === 0) msgs.push({ role: "user", text: `Question ${i / 2 + 1}: what is gate ${i / 2 + 1}?` });
+    else msgs.push({ role: "assistant", paras: [`Gate ${(i + 1) / 2} runs step${(i + 1) / 2}.py --strict.`, `It passes only if the exit code is ${(i + 1) / 2 % 3}.`] });
+  }
+  const inner = document.getElementById("inner"), sc = document.getElementById("scroller");
+  inner.style.height = N * ROW + "px";
+  const mounted = new Map();
+  function rowFor(i) {
+    const m = msgs[i];
+    const row = document.createElement("div");
+    row.setAttribute("data-testid", "transcript-row"); row.setAttribute("data-rs-index", i);
+    row.style.top = i * ROW + "px";
+    if (m.role === "user") {
+      row.innerHTML = `<div role="article"><div data-mini-claude-message><div data-transcript-row>
+        <div data-testid="user-message"><p></p></div></div></div></div>`;
+      row.querySelector("p").textContent = m.text;
+    } else {
+      row.innerHTML = `<div role="article"><div data-mini-claude-message><div data-transcript-row><div data-reply-scope>
+        <div data-testid="assistant-message" data-turn-key="t${i}" data-is-streaming="false">
+          <h2 class="sr-only">Claude responded: ${m.paras[0]}</h2>
+          <div data-closed data-state="closed">Thought for 4s</div>
+          <div data-transcript-engine-root><div class="standard-markdown">${m.paras.map((p) => `<p>${p}</p>`).join("")}</div></div>
+          <div data-testid="message-actions"><button>Copy</button><button>Retry</button><span>Oct 20</span></div>
+        </div></div></div></div></div>`;
+    }
+    return row;
+  }
+  function update() {     // mount only rows within one screen of the viewport (TanStack-style)
+    const top = sc.scrollTop - 600, bottom = sc.scrollTop + 1200;
+    for (let i = 0; i < N; i++) {
+      const vis = i * ROW + ROW > top && i * ROW < bottom;
+      if (vis && !mounted.has(i)) { const r = rowFor(i); inner.appendChild(r); mounted.set(i, r); }
+      if (!vis && mounted.has(i)) { mounted.get(i).remove(); mounted.delete(i); }
+    }
+  }
+  sc.addEventListener("scroll", update);
+  sc.scrollTop = sc.scrollHeight; update();
+</script></body></html>

@@ -2,6 +2,22 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.8.0] — 2026-11-20
+### Fixed
+- **Claude (Oct 2026 redesign):**
+  - Reply text is now read from the reply body only. The "Claude responded" heading, the reasoning row and the Copy/Retry/date bar no longer get in.
+  - Claude only keeps messages near the screen loaded. **Capture now reads the whole conversation**: it scrolls to the top, then down a screen at a time, collecting every message, and puts you back where you were. Before this, a capture saved only the handful of messages that happened to be loaded.
+  - Markers keep their text when their message scrolls off screen. The panel shows it, marked "off screen", instead of "not found".
+  - A whole-message marker can no longer attach to the wrong message after scrolling.
+  - Captured markers are placed on the right message of the full transcript. A marker whose message can't be found keeps its saved text in the export instead of disappearing.
+
+### Added
+- **Page shortcuts:**
+  - **Ctrl+M** marks the selected text. It goes straight into the marker panel, so you can keep selecting and pressing Ctrl+M.
+  - **Ctrl+Q** opens a collection picker. Pick a collection, press 1–9, or type a new name and press Enter. TExporT reads the whole chat and saves it, then offers **Export**.
+  - Both keys can be changed in Settings → Page shortcuts.
+  - Firefox defaults to Ctrl+Alt+Q, because Ctrl+Q quits Firefox. Browser-reserved keys (Ctrl+T, Ctrl+W, Ctrl+N) can't be used by any extension.
+
 ## [1.7.2] — 2026-10-24
 ### Added
 - Native shortcuts for Selection / Click-to-mark mode (`Alt+Shift+H`) and safe single-marker deletion (`Alt+Shift+U`). Existing mark-selection and panel shortcuts remain available.
@@ -95,6 +111,7 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - Right-click markers on Claude, ChatGPT and Gemini conversations.
 - Collections that combine several conversations, exported as PDF or Markdown with reader instructions, a marked-passages register and inline `[[MARK]]` tags.
 
+[1.8.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.8.0
 [1.7.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.7.0
 [1.6.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.6.0
 [1.5.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.5.0

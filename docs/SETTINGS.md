@@ -14,6 +14,9 @@ To open Settings, click **⚙ Settings** in the toolbar popup, choose **Settings
 | Always ask for a note | `askNote` | off | Prompts for a note on every marker. |
 | Show a ★ Mark button when you select text | `selectionButton` | on | A ★ Mark / + Note bar appears beside any text you select in a message. It is how you mark on phones and tablets. |
 | I also use TExporT for Android | `companionAndroid` | off | Shows **Send to Android (.texport.json)** on a collection and **Import from Android…** on the Collections page. |
+| Page shortcuts | `pageKeys` | on | Turns the two page shortcuts below on or off. |
+| Mark selected text | `markKey` | `Ctrl+M` | Marks the selection; it appears in the marker panel right away. |
+| Add whole chat to a collection | `collectKey` | `Ctrl+Q` (Firefox: `Ctrl+Alt+Q`) | Opens the collection picker, reads the whole chat, saves it, then offers Export. |
 | Highlight color | `color` | `#f59e0b` | Highlight, left border and badge color. Over-limit markers are always red. |
 | Highlight marked text and message edges | `showHighlights` | on | Turn off page CSS highlights (including active/over-limit highlights) and message edges without deleting markers or notes. Panel records remain; badges have their own setting. |
 | Size badge on each marker | `showBadges` | on | Small `#n · size` tag at the start of each marker. Click it to open the panel. |
