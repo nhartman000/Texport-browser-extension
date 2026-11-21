@@ -7,8 +7,10 @@ Mark the important points in your AI conversations, see exactly what each marker
 and export a handoff document the next AI can't quietly lose.
 </p>
 
+<p align="center"><a href="https://nhartman000.github.io/Texport-browser-extension/">Website</a> · <a href="https://nhartman000.github.io/Texport-browser-extension/privacy.html">Privacy policy</a></p>
+
 <p align="center">
-<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.8.0
+<b>Firefox 140+</b> · <b>Chrome 110+</b> (also Edge, Brave, Opera) · Claude · ChatGPT · Gemini · v1.8.1
 </p>
 
 ---

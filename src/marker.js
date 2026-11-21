@@ -270,7 +270,7 @@ async function smartStart() {
       el("li", { textContent: copied ? "The request is copied." : "Copy the request below." }),
       el("li", { textContent: "Go back to the chat, paste it into the message box and send it." }),
       el("li", { textContent: "TExporT watches the chat and, as soon as the answer is finished, lays the markers, copies the handoff, downloads the .md and adds it to your collection." })),
-    copied ? null : el("textarea", { value: prompt, style: "width:100%;height:120px;font:12px monospace" }),
+    ...(copied ? [] : [el("textarea", { value: prompt, style: "width:100%;height:120px;font:12px monospace" })]),
     el("button", { className: "opt primary", textContent: "Go to the chat tab", onclick: () => B.tabs.update(tabId, { active: true }) }),
     el("button", { className: "opt", textContent: "Copy the request again", onclick: () => copyText(prompt).then((ok) => toast(ok ? "Copied." : "Copy failed: select the text and copy it.")) }),
     el("button", { className: "opt", textContent: "Read the answer now", onclick: () => smartCheck(true) }),

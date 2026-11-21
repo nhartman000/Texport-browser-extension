@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TExporT Markers: mark what matters in AI chats</title>
+<meta name="description" content="Mark the key points in Claude, ChatGPT and Gemini chats and export a PDF or Markdown handoff the next AI won't lose. Free, private, no account.">
+<link rel="icon" href="img/store-icon-128.png">
+<style>
+  :root { --bg: #0b1020; --panel: #121a2e; --line: #24304d; --ink: #f3f4f6; --mute: #9aa4b8; --amber: #f59e0b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--amber); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 56px 0 28px; display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+  header img { width: 88px; height: 88px; }
+  h1 { font-size: clamp(34px, 6vw, 54px); line-height: 1.05; margin: 0; letter-spacing: -1px; }
+  h1 span { color: var(--amber); }
+  .tag { font-size: clamp(20px, 3vw, 26px); font-weight: 700; margin: 18px 0 6px; }
+  .lead { color: var(--mute); max-width: 760px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin: 22px 0 8px; }
+  .btn { display: inline-block; padding: 12px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); color: var(--ink); background: var(--panel); }
+  .btn.primary { background: var(--amber); color: #111; border-color: transparent; }
+  .note { color: var(--mute); font-size: 14px; }
+  h2 { font-size: 28px; margin: 56px 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .card b { display: block; font-size: 18px; margin-bottom: 6px; }
+  .card p { margin: 0; color: var(--mute); font-size: 15.5px; }
+  .shots img { width: 100%; border-radius: 14px; border: 1px solid var(--line); display: block; margin: 0 0 22px; }
+  ol.steps { padding-left: 22px; } ol.steps li { margin: 8px 0; }
+  kbd { background: #1f2937; border: 1px solid #374151; border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; font: 600 14px ui-monospace, monospace; }
+  pre { background: #0f1526; border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; font-size: 14px; color: #cbd5e1; }
+  .m { color: var(--amber); font-weight: 700; }
+  footer { border-top: 1px solid var(--line); margin-top: 64px; padding: 28px 0 48px; color: var(--mute); font-size: 15px; }
+  footer a { margin-right: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="img/store-icon-128.png" alt="TExporT Markers icon">
+    <div>
+      <h1>TExporT <span>Markers</span></h1>
+      <div class="note">Browser extension for Chrome, Edge, Brave and Firefox</div>
+    </div>
+  </header>
+
+  <div class="tag">Mark what matters. The next AI can't quietly lose it.</div>
+  <p class="lead">Long AI conversations bury the exact command, the number and the decision you made forty messages ago, and summaries drop them first. TExporT Markers lets you mark those passages while you read in Claude, ChatGPT or Gemini (or on any page). It then exports a PDF or Markdown handoff built for the next AI to read, with instructions and tags it has to respect.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/nhartman000/Texport-browser-extension#install">Install</a>
+    <a class="btn" href="https://github.com/nhartman000/Texport-browser-extension">Source &amp; docs</a>
+    <a class="btn" href="privacy.html">Privacy</a>
+  </div>
+  <p class="note">Free · no account · everything stays in your browser</p>
+
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="card"><b>Mark as you read</b><p>Highlight text and press <kbd>Ctrl</kbd>+<kbd>M</kbd>, or right-click. Each marker shows its size in tokens or words.</p></div>
+    <div class="card"><b>Collect whole chats</b><p>Press <kbd>Ctrl</kbd>+<kbd>Q</kbd> and pick a collection. TExporT reads every message, even in very long chats.</p></div>
+    <div class="card"><b>Export a real handoff</b><p>PDF or Markdown with reader instructions, a register of every marked passage, and <code>[[MARK]]</code> tags inline.</p></div>
+    <div class="card"><b>Smart Marker</b><p>The chat's own AI picks the key points as exact quotes. TExporT lays the markers and files the handoff. No API key.</p></div>
+    <div class="card"><b>Works on phones</b><p>The marker window turns a conversation into big tap targets. You can also mark any page, such as search results, AI answers and articles.</p></div>
+    <div class="card"><b>Private by design</b><p>No account, analytics or tracking. Markers and collections live only in your browser.</p></div>
+  </div>
+
+  <h2>See it</h2>
+  <div class="shots">
+    <img src="img/screenshot-1-markers.png" alt="Marked passages and the marker panel">
+    <img src="img/screenshot-2-collect.png" alt="Ctrl+Q collection picker">
+    <img src="img/screenshot-3-export.png" alt="Export page with the marked passages register">
+    <img src="img/screenshot-4-marker-window.png" alt="Marker window">
+    <img src="img/screenshot-5-smart-marker.png" alt="Smart Marker">
+  </div>
+
+  <h2>Keyboard workflow</h2>
+  <ol class="steps">
+    <li>Highlight text in the conversation and press <kbd>Ctrl</kbd>+<kbd>M</kbd>. The marker goes straight into the marker panel. Keep going.</li>
+    <li>Open the panel (the TExporT chip, bottom-right) any time to see everything you've marked.</li>
+    <li>Press <kbd>Ctrl</kbd>+<kbd>Q</kbd> and pick a collection, or type a new name. In Firefox, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Q</kbd>.</li>
+    <li>Click <b>Export</b>, then <b>Save as PDF</b> or <b>Download Markdown</b>.</li>
+  </ol>
+
+  <h2>What the next AI receives</h2>
+<pre>READER INSTRUCTIONS — for any AI model processing this document
+  Treat every marked passage as high priority. Keep it verbatim and cite it by ID.
+  Before finishing any summary, confirm every ID M1–M4 is accounted for.
+
+MARKED PASSAGES REGISTER
+<span class="m">[[MARK M1 START]]</span>
+Gate 1 runs build.py --strict. It passes only if the exit code is 0 and dist/manifest.json exists.
+<span class="m">[[MARK M1 END]]</span>
+…the full conversation follows, with every marked passage tagged where it occurs…</pre>
+
+  <h2>Part of TExporT</h2>
+  <div class="grid">
+    <div class="card"><b>TExporT Markers</b><p>This extension: marking inside the browser.</p></div>
+    <div class="card"><b><a href="https://github.com/nhartman000/TEXporT">TExporT for Linux</a></b><p>A see-through panel that scroll-captures text from any window by OCR.</p></div>
+    <div class="card"><b><a href="https://github.com/nhartman000/TEXporT_android">TExporT for Android</a></b><p>"Mark with TExporT" in every app's text-selection menu.</p></div>
+  </div>
+
+  <footer>
+    <a href="privacy.html">Privacy policy</a>
+    <a href="https://github.com/nhartman000/Texport-browser-extension/issues">Support</a>
+    <a href="https://github.com/nhartman000/Texport-browser-extension">GitHub</a>
+    <div style="margin-top:12px">© 2026 American Milestone Inc. All rights reserved.</div>
+  </footer>
+</div>
+</body>
+</html>

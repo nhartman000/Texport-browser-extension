@@ -2,33 +2,55 @@
 
 **Name:** TExporT Markers
 
-**Summary (132 chars max):**
-Mark key points in Claude, ChatGPT & Gemini chats, see what each marker captures, export a PDF/Markdown the next AI won't lose.
+**Summary** (Chrome: 132 characters max):
+Mark key points in Claude, ChatGPT & Gemini chats and export a PDF/Markdown handoff the next AI can't lose. Private, no account.
 
-**Category:** Productivity
+**Category:** Productivity (Workflow & Planning) · **Language:** English
+
+**Website (homepage URL):** https://nhartman000.github.io/Texport-browser-extension/
+**Support URL:** https://github.com/nhartman000/Texport-browser-extension/issues
+**Privacy policy URL:** https://nhartman000.github.io/Texport-browser-extension/privacy.html
 
 **Description:**
-Long AI conversations bury the decisions that matter. TExporT Markers lets you mark them as you go and carry them into your next session intact.
+Long AI conversations bury the details that matter: the exact command, the number, the decision from forty messages ago. When you move to a new chat or a different model, summaries drop those first. TExporT Markers lets you mark them as you read and carry them forward intact.
 
-• Right-click any message to mark it, or select text and tap ★ Mark. This works on phones too. Add a note saying why it matters.
-• See exactly what each marker captures: highlights, size badges and a panel with word and token counts.
-• Set limits and budgets in tokens, words or characters, so your handoff fits the next model's context.
-• Group conversations into collections and export each one as a single PDF or Markdown file.
-• Every export opens with reader instructions and a register of all marked passages. Each passage is wrapped in [[MARK]] tags, so an AI reading it keeps the specifics (numbers, names, code, decisions) instead of summarizing them away.
-• Works on claude.ai, chatgpt.com and gemini.google.com.
-• Private by design. Everything stays in your browser, with no accounts, no tracking and no network requests.
+MARK AS YOU READ
+• Highlight text and press Ctrl+M, or right-click. The marker goes straight into the marker panel.
+• Every marker shows its size in tokens, words or characters. Set limits and budgets so the handoff fits the next model.
+• Add a note to say why a passage matters.
 
-Part of TExporT by American Milestone Inc. MG8-ready.
+COLLECT AND EXPORT
+• Press Ctrl+Q and pick a collection. TExporT reads the whole conversation, even very long chats, and keeps your markers on the right lines.
+• Export as PDF or Markdown. Every export opens with reader instructions and a register of all marked passages, and wraps each passage in [[MARK]] tags so the AI keeps the specifics and cites them by ID.
+
+SMART MARKER (NO API KEY)
+• Let the chat's own AI pick the key points as exact quotes. TExporT lays the markers, copies the handoff, downloads the .md and files it in a collection.
+
+WORKS EVERYWHERE YOU READ
+• Claude, ChatGPT and Gemini, plus any page you choose with "Mark this page" (search results, AI answers, articles).
+• The marker window turns a conversation into big tap targets, which makes it easy on phones and tablets.
+
+PRIVATE BY DESIGN
+• No account, no analytics, no tracking, no network requests. Markers and collections stay in your browser.
+
+Part of TExporT by American Milestone Inc, which also offers TExporT for Linux and Android. MG8-ready.
 
 **Single purpose (Chrome):**
-Mark passages in AI chat conversations and export them as a document that preserves the marked content.
+Mark passages in AI chat conversations (or a page the user chooses) and export them as a document that preserves the marked content.
 
 **Permission justifications (Chrome):**
-- clipboardWrite: Smart Marker copies the finished handoff document to the clipboard.
-- activeTab: "Mark this page" — lets the user mark any page they're on (e.g. a search result or article), for that tab only, when they tap the button.
+- activeTab: "Mark this page" lets the user mark the page they're on, for that tab only, when they tap the button.
+- clipboardWrite: Smart Marker and the Copy buttons copy the finished handoff document to the clipboard.
 - contextMenus: adds the right-click "Mark this point" and collection commands.
+- scripting: starts the marker script on a tab that was already open, or on a page the user chooses to mark.
 - storage: saves markers, collections and settings locally on the user's device.
-- scripting: re-attaches the marker script to a chat tab that was already open when the extension was installed.
-- Host permissions (claude.ai, chatgpt.com, chat.openai.com, gemini.google.com): reads the conversation text on these pages so the user can mark and export it. No other sites are accessed.
+- Host permissions (claude.ai, chatgpt.com, chat.openai.com, gemini.google.com): reads the conversation text on these pages so the user can mark and export it. No other sites are accessed without the user's click.
 
 **Remote code:** No. All code is included in the package.
+
+**Data usage:** Website content. It is used only on the device for the single purpose, and is never sold, transferred, or used for anything else.
+
+**Store images** (in `store/`, regenerate with `python3 tools/store_assets.py`):
+- Store icon 128×128: `store-icon-128.png`
+- Screenshots 1280×800: `screenshot-1-markers.png`, `screenshot-2-collect.png`, `screenshot-3-export.png`, `screenshot-4-marker-window.png`, `screenshot-5-smart-marker.png`
+- Small promo tile 440×280: `promo-440x280.png`

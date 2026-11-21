@@ -2,6 +2,14 @@
 
 All notable changes to TExporT Markers. Versions follow [Semantic Versioning](https://semver.org/). The export tag format (`[[MARK Mn START]]`) is treated as a public interface, so a change to it is a major version.
 
+## [1.8.1] — 2026-11-20
+### Fixed
+- The Smart Marker instructions sheet showed a stray "null" after the steps.
+
+### Added
+- Website at `docs/` (GitHub Pages): landing page and privacy policy for the store listing.
+- New store assets: a 128×128 store icon with the required padding, five captioned 1280×800 screenshots, and a promo tile, all made by `tools/store_assets.py`.
+
 ## [1.8.0] — 2026-11-20
 ### Fixed
 - **Claude (Oct 2026 redesign):**
@@ -111,6 +119,7 @@ All notable changes to TExporT Markers. Versions follow [Semantic Versioning](ht
 - Right-click markers on Claude, ChatGPT and Gemini conversations.
 - Collections that combine several conversations, exported as PDF or Markdown with reader instructions, a marked-passages register and inline `[[MARK]]` tags.
 
+[1.8.1]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.8.1
 [1.8.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.8.0
 [1.7.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.7.0
 [1.6.0]: https://github.com/nhartman000/Texport-browser-extension/releases/tag/v1.6.0
